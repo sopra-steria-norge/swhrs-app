@@ -55,6 +55,7 @@
 }
 .ui-body-a,
 .ui-overlay-a {
+    background-color: #ffffff;
     border: 1px solid #aaaaaa /*{a-body-border}*/;
     color: #333333 /*{a-body-color}*/;
     text-shadow: 0 /*{a-body-shadow-x}*/ 1px /*{a-body-shadow-y}*/ 0 /*{a-body-shadow-radius}*/ #ffffff /*{a-body-shadow-color}*/;
@@ -883,4 +884,7 @@ only screen and (min-resolution: 240dpi) {
     outline-width: 1px;
     outline-style: dotted;
 }
-			
+
+.ui-text-input {
+    background-color: #f0f0f0;
+}

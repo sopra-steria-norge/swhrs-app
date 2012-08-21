@@ -4,37 +4,42 @@ div.ui-slider-switch {
     width: 44% !important;
 }
 
-label.missing  {
-	color:#FF0000;
-	font-weight:bold;
+label.missing {
+    color: #FF0000;
+    font-weight: bold;
 }
 
-.wrong{
-	color:#FF0000;
-	font-weight:bold;
-	margin: 0 auto;
+.wrong {
+    color: #FF0000;
+    font-weight: bold;
+    margin: 0 auto;
 }
 
-#buttonHour{
-	position: fixed;
-	left: 15%;
-	top: 20%;
-	}
-	
-#button1text{
-	position: fixed;
-	left: 12%;
-	top: 27%;
-	font-family: "Tahoma", Times, serif;
-}
-.center-button{
-margin: 0 auto;
-}
-#btnGrp{
-	position: fixed;
-	left: 30;
+#buttonHour {
+    position: fixed;
+    left: 15%;
+    top: 20%;
 }
 
+#button1text {
+    position: fixed;
+    left: 12%;
+    top: 27%;
+    font-family: "Tahoma", Times, serif;
+}
+
+.center-button {
+    margin: 0 auto;
+}
+
+#btnGrp {
+    position: fixed;
+    left: 30;
+}
+
+div[data-role='controlgroup'] >  div {
+    width: 350px;
+}
 
 
 
