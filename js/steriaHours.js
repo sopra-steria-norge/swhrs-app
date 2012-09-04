@@ -8,10 +8,10 @@ var favList = [];
  * favMap: In the function getFavourites this is set to contain all the favourites
  * as Favourite objects, stored with incremental numbers as keys
  */
-var favMap = {}; 
+var favMap = {};
 
 /**
- * favDescription is used to map projects and activitycodes with a projectdescription. 
+ * favDescription is used to map projects and activitycodes with a projectdescription.
  * It's set in the function getFavourites and used to display projectdescription for Hour Registrations in dayList
  */
 var favDescriptions = {};
@@ -54,13 +54,29 @@ function Project (projectnumber, activitycode, description){
 	this.description = description;
 }
 
+function saltAndHash(password) {
+    var salt = randomBase64String();
+    var digest = CryptoJS.enc.Base64.stringify(CryptoJS.SHA1(salt + "_" + password));
+    return salt + "_" + digest;
+}
+
+function randomBase64String() {
+    var base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    var stringLength = 8;
+    var randomString = '';
+    for (var i = 0; i < stringLength; i++) {
+        var randomNumber = Math.floor(Math.random() * base64Alphabet.length);
+        randomString += base64Alphabet.charAt(randomNumber);
+    }
+    return randomString;
+}
+
 $(document).ready(function() {
-	
 	var favLabelVar = $('#favLabel');
 	var hoursLabelVar = $('#hoursLabel');
 	var favVar = $('#fav');
 	var hoursVar = $('#hours');
-	
+
 	var myDate=new Date();
 	dateT = myDate.getDate();
 	monthT = myDate.getMonth();
@@ -68,30 +84,37 @@ $(document).ready(function() {
 		monthT = "0"+monthT;
 	}
 	yearT = myDate.getFullYear();
-	
+
 	/*
 	 * #loginPage
-	 * Loginform submit 
-	 * Sends the input username and password to the servlet(url: hours/login).
-	 * If the username and password is approved, the function SuccessLogin is executed.
+	 * Loginform submit
+	 * Sends the input username and password to the servlet(url: login).
 	 */
 	$('#loginForm').submit(function(){
-		var loginErr = false;
-		var jsonLogin = {username: $('[name=username]').val() , password: $('[name=password]').val(), country: $('input[name=radioCountry]:checked').val()}	
+		var jsonLogin = {
+            username: $('[name=username]').val(),
+            password: saltAndHash($('[name=password]').val()),
+            country: $('input[name=radioCountry]:checked').val()
+        };
 		$.ajax({
-			type:"POST",
-			url: 'hours/login',
+			type: 'POST',
+			url: 'login',
 			data: jsonLogin,
-			success: function(data){
-				SuccessLogin(data);
-			},
+			success: function(data) {
+                localStorage.setItem('loginToken', JSON.stringify(jsonLogin));
+                if (pageVars && pageVars.returnAfterLogin) {
+                    $.mobile.changePage(pageVars.returnAfterLogin.toPage);
+                } else {
+                    $.mobile.changePage("#weekPage", { changeHash:false });
+                }
+            },
 			error: function(data){
 				$('#loginErr').text("Wrong username/password");
 			}
 		});
 		return false;
 	});
-	
+
 	/*
 	 * #dayPage
 	 * Editing of registrations in dayList
@@ -99,16 +122,16 @@ $(document).ready(function() {
 	 */
 	$('#editReg').click(function(){
 		var err = false;
-		
+
 		descLabelVar = $('#descEditLabel');
 		hourEditVar = $('#hoursEditLabel');
 		// Reset highlighted form elements
 		descLabelVar.removeClass(MISSING);
 		hourEditVar.removeClass(MISSING);
-		
+
 		var editHours = $('#editHours').val();
 		var editDesc = $('#editDesc').val();
-		
+
 		if(editDesc==EMPTY){
 			descLabelVar.addClass(MISSING);
 			err = true;
@@ -117,12 +140,12 @@ $(document).ready(function() {
 			hourEditVar.addClass(MISSING);
 			err = true;
 		}
-		
+
 		// Validation error of input fields
 		if(err == true){
 			return false;
 		}
-		
+
 		var edit = {'taskNumber': editTaskNumber, 'hours': editHours, 'description': editDesc};
 		$.ajax({
 			type:"POST",
@@ -134,7 +157,7 @@ $(document).ready(function() {
 			}
 		});
 	});
-	
+
 	/*
 	 * #dayPage
 	 * Daypageform submit
@@ -148,7 +171,7 @@ $(document).ready(function() {
 		hoursLabelVar.removeClass(MISSING);
 		$.mobile.silentScroll(100);
 		hourForm = $("#hours").val();
-		
+
 		if(favVar.val()==NO_FAV){
 			favLabelVar.addClass(MISSING);
 			err = true;
@@ -157,34 +180,34 @@ $(document).ready(function() {
 			$('#hoursLabel').addClass(MISSING);
 			err = true;
 		}
-		
-		
+
+
 		// Validation error of input fields
 		if(err == true){
 			return false;
 		}
-			
+
 		var dateForm = $('#hdrDay').children('h1').text();
 		var favForm = $("#fav").val();
 		var hourForm = $("#hours").val();
 		var lunchForm = $("#lunch").val();
 		var selectedFav = favMap[favForm]; //The Favourite object selected in the select box
-		
+
 		var lunchCodeString = '';
 		if (lunchForm == 1) {
 			lunchCodeString = "1";
 		}else{
 			lunchCodeString = "0";
 		}
-		
-		var myData = {'projectNr': selectedFav.projectnumber, 'activityCode': selectedFav.activitycode, 
-				'description': selectedFav.description, 'billable': selectedFav.billable, 
-				'internalproject': selectedFav.internalproject, 'hours': hourForm, 'date': dateForm, 
+
+		var myData = {'projectNr': selectedFav.projectnumber, 'activityCode': selectedFav.activitycode,
+				'description': selectedFav.description, 'billable': selectedFav.billable,
+				'internalproject': selectedFav.internalproject, 'hours': hourForm, 'date': dateForm,
 				'lunchNumber': lunchCodeString};
 		postHourRegistration(myData);
 		return false;
 	});
-	
+
 	/*
 	 * Listens to a click of "Search Projects" in the Fav page
 	 * Gets search data from the server and displays results in a a list. SQL statement is set to return maximum 50 results
@@ -192,9 +215,9 @@ $(document).ready(function() {
 	$('#favBtn').click(function(){
 		var inputSearch = $("#favSearch").val();
 		var search = {search: inputSearch}
-		
+
 		$.ajax({
-			type:"POST",
+			type:"GET",
 			url: 'hours/searchFavourites',
 			data: search,
 			success: function(data){
@@ -202,7 +225,7 @@ $(document).ready(function() {
 			}
 		});
 	});
-	
+
 	/*
 	 * #weekPage
 	 * Listens to clicks on list elements in weekPage (Monday, Tuesday etc.)
@@ -211,13 +234,13 @@ $(document).ready(function() {
 	$('#weekList').on('click', 'li', function() {
 	    var dayString = $(this).html();
 	    var index = dayString.indexOf('<p class="ui-li-desc">')+'<p class="ui-li-desc">'.length;
-	    var dateString = dayString.substring(index, index+10); 
-	    
+	    var dateString = dayString.substring(index, index+10);
+
 		$.mobile.changePage($("#dayPage"));
 		resetDay();
 		getDayList(dateString);
 	});
-	
+
 	/*
 	 * Listens to click on the "Day" button in the footer
 	 * Resets the view and gets the list for current day
@@ -226,7 +249,7 @@ $(document).ready(function() {
 		  resetDay();
 		  getDayList(today);
 	});
-	
+
 	/*
 	 * Listens to clicks on the "Fav" button in the footer
 	 * Removes any previous content and displays current favourites
@@ -238,7 +261,7 @@ $(document).ready(function() {
 		getFavouriteList(fillListInFavPage);
 		$('#favList').listview('refresh');
 	});
-	
+
 });
 
 /*
@@ -250,7 +273,6 @@ $('#dayPage' ).live( 'pageinit',function(event){
 	getDayList(today);
 });
 
-
 /*
  * Checks if the page is secured, if so checks if the user is authenticated.
  * If not, redirects to login page
@@ -258,21 +280,29 @@ $('#dayPage' ).live( 'pageinit',function(event){
 $(document).bind("pagebeforechange", function (event, data) {
     if (typeof data.toPage == 'object' && data.toPage.attr('data-needs-auth') == 'true') {
     	console.log("User needs to be authenticated to reach this page");
-    	if (!sessionStorage.getItem("UNameLSKey")) {
-    		console.log("User have no sessionstorage");
-    		if (!localStorage.getItem("UNameLSKey")) {
-    			console.log("User have no localstorage");
-    			pageVar = data.toPage.attr('id');
-    			pageVars.returnAfterLogin = data;
-    			event.preventDefault();
-    			$.mobile.changePage("#loginPage", { changeHash: false });
-    		}else{
-    			sessionStorage.setItem('UNameLSKey', localStorage.getItem("UNameLSKey"));
-    			//THIS IS WHERE THE USER HAVE THEIR INFORMATION ALLREADY STORED, AND IS AUTOMATICALLY REDIRECTED TO THE DAYPAGE.
-    			//THIS IS WHERE THE USERNAME NEEDS TO BE SENT TO THE SERVLET
-    			//setUsername(localStorage.getItem("UNameLSKey"));
-    		}
-    	}
+        var loginToken;
+    	if (!sessionStorage.getItem("loginToken")) {
+            console.log("User have no sessionstorage");
+            loginToken = JSON.parse(localStorage.getItem("loginToken"));
+            if (!loginToken) {
+                console.log("User have no localstorage");
+                redirectToLogin();
+            }
+        } else {
+            loginToken = JSON.parse(sessionStorage.getItem("loginToken"));
+        }
+        $.ajax({
+            type: "POST",
+            url: 'login',
+            data: loginToken,
+            success: function(data) {
+                sessionStorage.setItem('loginToken', JSON.stringify(loginToken));
+            },
+            error: function(data) {
+                console.log("loginToken in localStorage was refused by the authentication service.");
+                redirectToLogin();
+            }
+        });
     }
     if (typeof data.toPage != "string" && data.toPage.attr("id") == "weekPage") {
     	var thisWeek = "thisWeek";
@@ -280,37 +310,9 @@ $(document).bind("pagebeforechange", function (event, data) {
     }
 });
 
-/*
- * Should set username in cookies and server. Not working properly, and is not being used
- */
-function setUsername(username){
-	var details = {UN: username}
-	$.ajax({
-		type:"POST",
-		url: 'hours/setUsername',
-		data: details,
-		success: function(){
-			var today = "today";
-		}
-	});
+function redirectToLogin() {
+    $.mobile.changePage("#loginPage", { changeHash:false });
 }
-
-/*
- * SuccessLogin(data) - Executed after a successful login response
- * Checks if the response data is null, if not return to the page requested before login.
- */
-function SuccessLogin(data) {
-    if (data != null) {
-    	localStorage.setItem('UNameLSKey', "AK");
-    	
-    	if (pageVars && pageVars.returnAfterLogin) {
-            	$.mobile.changePage(pageVars.returnAfterLogin.toPage);
-        }else{
-                $.mobile.changePage("#weekPage", { changeHash: false });
-        }
-	}
-}
-
 
 /*
  * postHourRegistration(mydata)
@@ -394,7 +396,7 @@ function getWeekList(newWeek){
 	var week = {week: newWeek};
 	$('#weekList').children().remove('li');
 	$.ajax({
-		type: "POST",
+		type: "GET",
 		url: 'hours/week',
 		data: week,
 		success: function(data){
@@ -404,7 +406,7 @@ function getWeekList(newWeek){
 			var dataArray = new Array();
 			for (var key in data) {
 				if (data.hasOwnProperty(key)) {
-					if(key === "weekNumber"){	
+					if(key === "weekNumber"){
 						$('#hdrWeek').children('h1').text(data[key]);
 					}else if(key === "dateHdr"){
 						var hdrDayText = data[key].split(' ')[0];
@@ -416,11 +418,11 @@ function getWeekList(newWeek){
 						dateArray.push(key);
 						hoursArray.push(data[key]);
 					}
-				} 
+				}
 			}
 			updateWeekList(dateArray.sort(), data);
 		}
-		
+
 	});
 }
 
@@ -438,11 +440,11 @@ function updateWeekList(dateArray, data){
 		dayHours.push(hours);
 		if(data[dateArray[i]][2] == 1 || submitted){
 			submitted = true;
-			$('#weekList').append($("<li data-theme='c' data-icon='check'></li>").html('<a href=""><b>' + 
-						weekDays[dayNr] + '</b><p>'+dateArray[i]+'</p></a><span class="ui-li-count">' + hours + ' hours'+'</span>')).listview('refresh');
+			$('#weekList').append($("<li data-theme='b' data-icon='check'></li>").html('<a href="">' +
+						weekDays[dayNr] + '<p>'+dateArray[i]+'</p></a><span class="ui-li-count">' + hours + ' hours'+'</span>')).listview('refresh');
 			}else{
-			$('#weekList').append($("<li data-theme='c'></li>").html('<a href=""><b>' +
-					weekDays[dayNr] + '</b><p>'+dateArray[i]+'</p></a><span class="ui-li-count">' + hours + ' hours'+'</span>')).listview('refresh');
+			$('#weekList').append($("<li data-theme='b'></li>").html('<a href="">' +
+					weekDays[dayNr] + '<p>'+dateArray[i]+'</p></a><span class="ui-li-count">' + hours + ' hours'+'</span>')).listview('refresh');
 		}
 	}
 	var totalWeek = 0;
@@ -455,7 +457,7 @@ function updateWeekList(dateArray, data){
 	}else{
 		norm = 40;
 	}
-	$('#weekDescription').children('b').text("You have logged "+totalWeek+" hours this week");
+	$('#weekDescription').children('p').text("You have logged "+totalWeek+" hours this week");
 	$('#hdrDia').children('h1').text("Do you want to Submit?");
 	$('#contentDia').children('p').text("You have registered "+totalWeek+" hours in period. Norm time is "+norm+" hours.");
 }
@@ -468,24 +470,44 @@ function updateWeekList(dateArray, data){
 function updateDayList(fav, hour, lunch){
 	var lunchText = "1 : Lunch";
 	var totalDay = 0;
-		
+
 	$.each(hour,function() {
 	    totalDay += (this);
 	});
 	$('#dayDescription').text("Total "+totalDay+" hours");
 	if(lunch == 1){
-		$('#dayList').append($("<li></li>").html('<a href="#" data-split-theme="c" data-split-icon="delete"><b>' +
-	            lunchText + '</b><span class="ui-li-count"> 0.5 timer '+'</span></a><a href=""></a>')).listview('refresh');	
+		$('#dayList').append($("<li></li>").html('<a href="#" data-split-icon="delete">' +
+	            lunchText + '<span class="ui-li-count"> 0.5 timer '+'</span></a><a href="#"></a>')).listview('refresh');
 		$('#lunch').val(0);
 		$('#lunch').slider('refresh');
-		
+
 	}
-	$('#dayList').append($("<li></li>").html('<a href="#" data-split-theme="c" data-split-icon="delete"><b>' +
-            fav + ' </b><span class="ui-li-count">' + hour + ' timer '+'</span></a><a href=""></a>')).listview('refresh');
+	$('#dayList').append($("<li></li>").html('<a href="#" data-split-icon="delete">' +
+            fav + ' <span class="ui-li-count">' + hour + ' timer '+'</span></a>')).listview('refresh');
 	$('#hours').val(0);
 	$('#hours').slider('refresh');
 }
 
+//<ul data-role="listview" data-inset="true">
+//    <li><a href="index.html">
+//        <img src="images/album-bb.jpg" />
+//        <h3>Broken Bells</h3>
+//        <p>Broken Bells</p>
+//    </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+//    </a></li>
+//    <li><a href="index.html">
+//        <img src="images/album-hc.jpg" />
+//        <h3>Warning</h3>
+//        <p>Hot Chip</p>
+//    </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+//    </a></li>
+//    <li><a href="index.html">
+//        <img src="images/album-p.jpg" />
+//        <h3>Wolfgang Amadeus Phoenix</h3>
+//        <p>Phoenix</p>
+//    </a><a href="lists-split-purchase.html" data-rel="dialog" data-transition="slideup">Purchase album
+//    </a></li>
+//</ul>
 
 /*
  * deleteRegistration()
@@ -527,13 +549,13 @@ function getFavouriteList(addToPage){
 	favList = [];
 	favDescription = {};
 	$.ajax({
-		type: "POST",
+		type: "GET",
 		url: 'hours/favourite',
 		success: function(data){
 			for(var key in data){
 				var jsonMap = data[key];
 				var newFav = new Favourite(jsonMap['projectnumber'], jsonMap['activitycode'], jsonMap['description'], jsonMap['projectname'], jsonMap['customername'], jsonMap['billable'], jsonMap['internalproject']);
-				
+
 				favMap[key] = newFav;
 				favDescription[jsonMap['projectnumber'] + '<:>' + jsonMap['activitycode']] = newFav;
 				var favtext = newFav.projectname + " ("+ newFav.activitycode + ") " + newFav.description;
@@ -550,12 +572,12 @@ function getFavouriteList(addToPage){
 function fillListInFavPage(favlist) {
 	for (var i = 0; i < favList.length; i++) {
 		var favs = favList[i];
-		$('#favList').append($('<li id="fav:' + i +'"></li>').html('<a href="#" data-split-theme="c" data-split-icon="delete"><b>' +
+		$('#favList').append($('<li id="fav:' + i +'"></li>').html('<a href="#" data-split-theme="a" data-split-icon="delete"><b>' +
 	            favs + ' </b></a><a href="javascript:deleteFavourite('+i+')"></a>'));
 	}
 	$('#favList').listview('refresh');
 	$('#favText').text("Current favourites");
-	
+
 }
 
 function fillProjectList(data){
@@ -566,12 +588,12 @@ function fillProjectList(data){
 		var projects = jsonMap['projectnumber'] + " ("+ jsonMap['activitycode'] + ") " + jsonMap['description'];
 		var pNr = jsonMap['projectnumber'];
 		var aC = jsonMap['activitycode'];
-		$('#projectList').append($("<li></li>", {id:""}).html('<a href="#" data-split-theme="c"><b>' +
-				projects + ' </b></a><a href="" onclick="javascript:addFavourites(\''+pNr+'\',\''+aC+'\')"></a>'));
+		$('#projectList').append($("<li></li>", {id:""}).html('<a href="#" data-split-theme="a">' +
+				projects + ' </a><a href="" onclick="javascript:addFavourites(\''+pNr+'\',\''+aC+'\')"></a>'));
 	}
 	$('#favList').listview();
 	$('#favText').text("Search results");
-	$('#favList').listview('refresh'); 
+	$('#favList').listview('refresh');
 	$('#projectList').listview('refresh');
 }
 
@@ -591,20 +613,20 @@ function addFavourites(pNr, aC){
 function deleteFavourite(key) {
 	var fav = favMap[key];
 	var delFavourite = {'projectNumber': fav.projectnumber, 'activityCode': fav.activitycode};
-	
+
 	$.ajax({
 		type:"POST",
 		url: 'hours/deleteFavourite',
 		data: delFavourite,
 		success: function(){
 			alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
-			$('#favList').children().remove('li');			
+			$('#favList').children().remove('li');
 			getFavouriteList(fillListInFavPage);
 			getFavouriteList(fillSelectMenuInDayPage);
 		},
 		async: false
 	});
-	
+
 }
 
 function fillSelectMenuInDayPage(favList){
@@ -615,7 +637,7 @@ function fillSelectMenuInDayPage(favList){
 	for (var i = 0; i < favList.length; i++) {
 		var favs = favList[i];
 		$('#fav').append('<option value='+ i +'>'+favs+'</option>').selectmenu('refresh', true);
-	    
+
 	}
 }
 
@@ -627,12 +649,11 @@ function getDayList(newDay) {
 	var weekDays = new Array("", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
 	if(newDay == 1)getFavouriteList(fillSelectMenuInDayPage);
 	var totalHours = 0;
-	var newDay = {day: newDay};
-	regMap = {};
+    regMap = {};
 	$.ajax({
-		type: "POST",
+		type: "GET",
 		url: 'hours/daylist',
-		data: newDay,
+		data: {day: newDay},
 		success: function(data){
 			for (var key in data) {
 				var jsonMap = data[key];
@@ -648,7 +669,7 @@ function getDayList(newDay) {
 				}else{
 					var val = data[key];
 					totalHours += val['hours'];
-					
+
 					var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
 					var projectdescription = val['description'];
 					//super ugly hack
@@ -665,24 +686,24 @@ function getDayList(newDay) {
 						buttonlink = '<a href="#" data-icon="check"></a>';
 					} else if (newhr['submitted']) {
 						editlink = '<a href="#">';
-						buttonlink = '<a href="#" data-theme="c" data-icon="check"></a>';
+						buttonlink = '<a href="#" data-icon="check"></a>';
 					} else {
-						editlink = '<a href="javascript:editRegistration('+ newhr.tasknumber +')">';
-						buttonlink = '<a href="javascript:deleteRegistration(' + newhr.tasknumber +')" data-icon="delete"></a>';
+						editlink = '<a href="#" data-theme="a" onclick="editRegistration('+ newhr.tasknumber +')">';
+						buttonlink = '<a href="#" data-theme="a" onclick="deleteRegistration(' + newhr.tasknumber +')" data-icon="delete"></a>';
 					}
-					$('#dayList').append($('<li id="reg:' + key +'" data-rel="popup"></li>').html(editlink +
-							'<b>' + newhr['projectDescription']+' </b><span class="ui-li-count">' + newhr['hours'] + ' hours '+
+					$('#dayList').append($('<li id="reg:' + key +'" data-rel="popup"/>').html(editlink +
+                        newhr['projectDescription'] + '<span class="ui-li-count">' + newhr['hours'] + ' hours '+
 							'</span></a>' + buttonlink)).listview('refresh');
 				}
 			}
 			if(totalHours != 0){
-				$('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours '+'</span>')).listview('refresh');
+				$('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours'+'</span>')).listview('refresh');
 			}
 		},
 		error: function(data){
 			console.log("dayList error");
 		}
-	});	
+	});
 }
 
 /*
