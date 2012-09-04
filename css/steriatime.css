@@ -1,10 +1,4 @@
-div.ui-slider-switch {
-    position: absolute !important;
-    right: 0 !important;
-    width: 44% !important;
-}
-
-label.missing  {
+/* label.missing  {
 	color:#FF0000;
 	font-weight:bold;
 }
@@ -35,9 +29,10 @@ margin: 0 auto;
 	left: 30;
 }
 
+label.ui-input-text {
+    vertical-align: middle;
+}
 
-
-
-
-	
-
+input.ui-input-text {
+    background-color: #fff;
+} */
