@@ -1,0 +1,29 @@
+.ui-br {
+    padding-bottom: 0.5em;
+}
+
+label {
+    margin-top: 0.5em;
+}
+
+.ui-field-contain {
+    margin-top: 0.8em;
+    margin-bottom: 0em;
+}
+
+#dayListButtonDiv {
+    margin-top: 0.5em;
+    margin-bottom: 1.5em;
+}
+
+.ui-li-desc {
+    margin-top: 0.2em;
+}
+
+.split-button {
+    border-top: 0;
+}
+
+#editDesc {
+    font-style: italic;
+}

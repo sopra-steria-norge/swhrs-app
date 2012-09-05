@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="css/jquery.mobile.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/jqm-datebox.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/steria.css"/>
+    <link rel="stylesheet" type="text/css" href="css/steria-custom.css"/>
 
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="js/jquery.mobile.min.js"></script>
@@ -28,44 +29,41 @@
     <div data-role="header" id="hdrDay" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <a href="javascript:prevDay()" data-icon="arrow-l">Prev</a>
 
-        <h1>Monday, 3.9</h1>
+        <h1></h1>
         <a href="javascript:nextDay()" data-icon="arrow-r" data-iconpos="right">Next</a>
     </div>
 
     <!-- DayContent: Contains the form that shall be submitted, project, hours worked, lunch, submit and overtime button -->
     <div data-role="content" id="contentDay">
         <form id="dayForm">
-
             <div id="favDiv" data-role="fieldcontain">
                 <label id="favLabel" for="fav">Choose project</label>
-                <select id="fav" name="fav_r" tabindex="2" data-theme="a" data-native-menu="false">
+                <select id="fav" name="fav_r" tabindex="2" data-theme="b" data-native-menu="false">
                 </select>
             </div>
 
             <div data-role="fieldcontain">
                 <label id="hoursLabel" for="hours">Hours worked</label>
-                <input type="range" name="hours" id="hours" value="0" min="0" max="16" step="0.25" data-highlight="true"
-                       data-theme=""/>
+                <input type="range" name="hours" id="hours" value="7.5" min="0" max="16" step="0.25"
+                       data-highlight="true"
+                       data-theme="b"/>
             </div>
 
             <div id="lunchDiv" data-role="fieldcontain">
                 <label id="lunchLabel" for="lunch">Lunch</label>
-                <select name="lunch_r" id="lunch" data-role="slider" data-theme="a">
+                <select name="lunch_r" id="lunch" data-role="slider" data-theme="b">
                     <option value="0">No</option>
                     <option value="1" selected="selected">Yes</option>
                 </select>
             </div>
 
             <fieldset class="ui-grid-a">
-                <div class="ui-block-a">
-                    <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Save</button>
+                <div id="dayListButtonDiv" class="ui-block-a">
+                    <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
                 </div>
             </fieldset>
-
         </form>
-        <b id="dayDescription"></b>
-        <ul id="dayList" data-role="listview" data-inset="true" data-theme="b" data-split-theme="b">
-        </ul>
+        <ul id="dayList" data-role="listview" data-inset="true" data-theme="b"/>
     </div>
     <!-- contentDay -->
 
@@ -94,7 +92,7 @@
     <div data-role="header" id="hdrWeek" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <a href="javascript:prevWeek()" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Prev</a>
 
-        <h1>3.9 - 9.9</h1>
+        <h1></h1>
         <a href="javascript:nextWeek()" data-icon="arrow-r" data-iconpos="right" data-transition="slide">Next</a>
     </div>
 
@@ -105,8 +103,8 @@
         <div id="weekDescription" align="center">
             <p/>
         </div>
-        <a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop">Submit
-            period</a>
+        <a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop"
+           data-theme="e">Submit period</a>
     </div>
 
     <!-- weekPage footer -->
@@ -143,7 +141,7 @@
         </form>
 
         <b id="favText"></b>
-        <ul id="favList" data-role="listview" data-inset="true" data-theme="a" data-split-icon="delete"
+        <ul id="favList" data-role="listview" data-inset="true" data-theme="b" data-split-icon="delete"
             data-split-theme="d"></ul>
         <ul id="projectList" data-role="listview" data-inset="true" data-theme="a" data-split-icon="plus"
             data-split-theme="d"></ul>
@@ -216,8 +214,10 @@
                 <label for="radSweden">Sweden</label>
             </div>
 
-            <label for="username">Username:</label><input type="text" name="username" id="username" data-role="fieldcontain"><br/>
-            <label for="password">Password:</label><input type="password" name="password" id="password" data-role="fieldcontain"><br/>
+            <label for="username">Username:</label><input type="text" name="username" id="username"
+                                                          data-role="fieldcontain"><br/>
+            <label for="password">Password:</label><input type="password" name="password" id="password"
+                                                          data-role="fieldcontain"><br/>
 
             <fieldset class="ui-grid-a">
                 <div class="ui-block-a">
@@ -310,7 +310,7 @@
         <form id="editForm">
             <div id="descDiv" data-role="fieldcontain">
                 <label id="descEditLabel" for="editDesc">Description:</label>
-                <textarea cols="40" rows="8" name="editDesc" id="editDesc"></textarea>
+                <p id="editDesc"></p>
             </div>
             <div data-role="fieldcontain">
                 <label id="hoursEditLabel" for="editHours">Hours worked:</label>
