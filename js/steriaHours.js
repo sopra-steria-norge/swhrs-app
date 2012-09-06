@@ -84,7 +84,7 @@ $(document).ready(function () {
         };
         $.ajax({
             type:'POST',
-            url:'login',
+            url:'http://10.118.18.113:8081/swhrs-app/login',
             data:jsonLogin,
             success:function (data) {
                 localStorage.setItem('loginToken', JSON.stringify(jsonLogin));
@@ -123,7 +123,7 @@ $(document).ready(function () {
         var edit = {'taskNumber':editTaskNumber, 'hours':editHours};
         $.ajax({
             type:"POST",
-            url:'hours/updateRegistration',
+            url:'http://10.118.18.113:8081/swhrs-app/hours/updateRegistration',
             data:edit,
             success:function (data) {
                 resetDay();
@@ -192,7 +192,7 @@ $(document).ready(function () {
 
         $.ajax({
             type:"GET",
-            url:'hours/searchFavourites',
+            url:'http://10.118.18.113:8081/swhrs-app/hours/searchFavourites',
             data:search,
             success:function (data) {
                 fillProjectList(data);
@@ -257,7 +257,7 @@ function authenticate() {
     }
     $.ajax({
         type:"POST",
-        url:'login',
+        url:'http://10.118.18.113:8081/swhrs-app/login',
         data:loginToken,
         success:function (data) {
             sessionStorage.setItem('loginToken', JSON.stringify(loginToken));
@@ -298,7 +298,7 @@ function redirectToLogin() {
 function postHourRegistration(myData) {
     $.ajax({
         type:"POST",
-        url:'hours/registration',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/registration',
         data:myData,
         success:function () {
             getDayList(today);
@@ -315,7 +315,7 @@ function updatePeriod() {
     options = {'option':1};
     $.ajax({
         type:"POST",
-        url:'hours/updatePeriod',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/updatePeriod',
         data:options,
         success:function (data) {
         }
@@ -372,7 +372,7 @@ function getWeekList(newWeek) {
     $('#weekList').children().remove('li');
     $.ajax({
         type:"GET",
-        url:'hours/week',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/week',
         data:week,
         success:function (data) {
             var dateArray = new Array();
@@ -444,7 +444,7 @@ function deleteRegistration(taskNr, listid) {
     var delreg = {taskNumber:taskNr}
     $.ajax({
         type:"POST",
-        url:'hours/deleteRegistration',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/deleteRegistration',
         data:delreg,
         success:function (data) {
             if (data.indexOf('Already submitted') != -1) {
@@ -478,7 +478,7 @@ function getFavouriteList(addToPage) {
     favList = [];
     $.ajax({
         type:"GET",
-        url:'hours/favourite',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/favourite',
         success:function (data) {
             for (var key in data) {
                 var jsonMap = data[key];
@@ -526,7 +526,7 @@ function addFavourites(pNr, aC) {
     var favourite = {'projectNumber':pNr, 'activityCode':aC}
     $.ajax({
         type:"POST",
-        url:'hours/addFavourites',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/addFavourites',
         data:favourite,
         success:function (data) {
             getFavouriteList(fillSelectMenuInDayPage);
@@ -541,7 +541,7 @@ function deleteFavourite(key) {
 
     $.ajax({
         type:"POST",
-        url:'hours/deleteFavourite',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/deleteFavourite',
         data:delFavourite,
         success:function () {
             alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
@@ -577,7 +577,7 @@ function getDayList(newDay) {
     regMap = {};
     $.ajax({
         type:"GET",
-        url:'hours/daylist',
+        url:'http://10.118.18.113:8081/swhrs-app/hours/daylist',
         data:{day:newDay},
         success:function (data) {
             for (var key in data) {
