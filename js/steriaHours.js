@@ -1,5 +1,8 @@
 // Declare global variables
 var pageVars = {};
+var dateT;
+var monthT;
+var yearT;
 
 //favlist contains a list of Strings to displau favourites in lists, it's filled in getFavourites
 var favList = [];
@@ -59,19 +62,22 @@ function randomBase64String() {
     return randomString;
 }
 
-$(document).ready(function () {
+function findTodaysDate() {
+    var today = new Date();
+    dateT = today.getDate();
+    monthT = today.getMonth();
+    if (monthT < 10) {
+        monthT = "0" + monthT;
+    }
+    yearT = today.getFullYear();
+}
+
+$(document).on('pageinit', function () {
     var favLabelVar = $('#favLabel');
     var hoursLabelVar = $('#hoursLabel');
     var favVar = $('#fav');
 
-    var myDate = new Date();
-    dateT = myDate.getDate();
-    monthT = myDate.getMonth();
-    if (monthT < 10) {
-        monthT = "0" + monthT;
-    }
-    yearT = myDate.getFullYear();
-
+    findTodaysDate();
     $('#loginForm').submit(function () {
         var loginToken = {
             username:$('[name=username]').val(),
@@ -90,7 +96,7 @@ $(document).ready(function () {
                     $.mobile.changePage("#weekPage", { changeHash:true });
                 }
             },
-            error:function (data) {
+            error:function () {
                 $('#loginErr').text("Wrong username/password");
             }
         });
@@ -102,7 +108,7 @@ $(document).ready(function () {
      * Editing of registrations in dayList
      * Listens to click of a list element in dayList
      */
-    $('#editReg').click(function () {
+    $('#editReg').on('click', function () {
         var err = false;
 
         var hourEditVar = $('#hoursEditLabel');
@@ -118,7 +124,7 @@ $(document).ready(function () {
 
         var edit = {'taskNumber':editTaskNumber, 'hours':editHours};
 
-        var onSuccess = function() {
+        var onSuccess = function () {
             resetDay();
             getDayList(today);
         };
@@ -180,13 +186,11 @@ $(document).ready(function () {
      * Listens to a click of "Search Projects" in the Fav page
      * Gets search data from the server and displays results in a a list. SQL statement is set to return maximum 50 results
      */
-    $('#favBtn').click(function () {
+    $('#favBtn').on('click', function () {
         var inputSearch = $("#favSearch").val();
         var searchData = {search:inputSearch}
 
-        authenticatedAjax('GET', 'hours/searchFavourites', searchData, function (data) {
-            fillProjectList(data);
-        });
+        authenticatedAjax('GET', 'hours/searchFavourites', searchData, fillProjectList);
     });
 
     /*
@@ -208,7 +212,7 @@ $(document).ready(function () {
      * Listens to click on the "Day" button in the footer
      * Resets the view and gets the list for current day
      */
-    $('.dayLink').bind('click', function () {
+    $('.dayLink').on('click', function () {
         resetDay();
         getDayList(today);
     });
@@ -217,7 +221,7 @@ $(document).ready(function () {
      * Listens to clicks on the "Fav" button in the footer
      * Removes any previous content and displays current favourites
      */
-    $('.favLink').bind('click', function () {
+    $('.favLink').on('click', function () {
         $('#favText').text("User favourites");
         $('#projectList').children().remove('li');
         $('#favList').children().remove('li');
@@ -228,12 +232,11 @@ $(document).ready(function () {
 });
 
 function getLoginToken() {
-    return $.parseJSON(localStorage.getItem(LOGIN_TOKEN));
+    return JSON.parse(localStorage.getItem(LOGIN_TOKEN));
 }
 
-$(document).bind("pagebeforechange", function (event, data) {
+$(document).on("pagebeforechange", function (event, data) {
     if (typeof data.toPage == 'object' && data.toPage.attr('data-needs-auth') == 'true') {
-        console.log("User needs to be authenticated to reach this page");
         if (!getLoginToken()) {
             redirectToLogin(event);
         }
@@ -247,27 +250,33 @@ function authenticatedAjax(type, url, data, success, error) {
         data:data,
         headers:{"X-Authentication-Token":JSON.stringify(getLoginToken())},
         success:defaultFunction(success),
-        error:defaultFunction(error)
+        statusCode:{
+            403:function () {
+                redirectToLogin();
+            }
+        },
+        error: defaultFunction(error)
     });
 }
 
-function defaultFunction(arg) {
-    return typeof arg === 'function' ? arg : (function () {
-    });
+function defaultFunction(arg, val) {
+    return typeof arg === 'function' ? arg : (typeof val === 'function' ? val : (function () { }));
 }
 
-$('#dayPage').live('pageinit', function () {
+$('#dayPage').on('pageinit', function () {
     getFavouriteList(fillSelectMenuInDayPage);
     getDayList(today);
 });
 
-$('#weekPage').live('pageinit', function () {
+$('#weekPage').on('pageinit', function () {
     getWeekList("thisWeek");
 });
 
 
 function redirectToLogin(event) {
-    event.preventDefault();
+    if (event) {
+        event.preventDefault();
+    }
     $.mobile.changePage("#loginPage", { changeHash:false });
 }
 
@@ -408,19 +417,19 @@ function updateWeekList(dateArray, data) {
 function deleteRegistration(taskNr, listid) {
     var delreg = {taskNumber:taskNr}
 
-    function onSuccess() {
+    var onSuccess = function onSuccess() {
         return function (data) {
             if (data.indexOf('Already submitted') != -1) {
                 $.mobile.changePage($("#dialogPopUpNoDelete"));
             } else {
                 $('#reg' + taskNr).remove();
                 resetDay();
-                getDayList("today");
+                getDayList("2012-09-17"); // todo: get today's date instead
             }
         };
-    }
+    };
 
-    authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess());
+    authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
     return true;
 }
 
@@ -483,33 +492,26 @@ function fillProjectList(data) {
 }
 
 function addFavourites(pNr, aC) {
-    var favourite = {'projectNumber':pNr, 'activityCode':aC}
-    $.ajax({
-        type:"POST",
-        url:'hours/addFavourites',
-        data:favourite,
-        success:function (data) {
-            getFavouriteList(fillSelectMenuInDayPage);
-            alert('Added project with nr ' + pNr + ' to favourite list');
-        }
-    });
+    var data = {'projectNumber':pNr, 'activityCode':aC}
+    var onSuccess = function () {
+        getFavouriteList(fillSelectMenuInDayPage);
+        alert('Added project with nr ' + pNr + ' to favourite list');
+    };
+    authenticatedAjax("POST", "hours/addFavourites", data, onSuccess);
 }
 
 function deleteFavourite(key) {
     var fav = favMap[key];
     var delFavourite = {'projectNumber':fav.projectnumber, 'activityCode':fav.activitycode};
 
-    $.ajax({
-        type:"POST",
-        url:'hours/deleteFavourite',
-        data:delFavourite,
-        success:function () {
-            alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
-            $('#favList').children().remove('li');
-            getFavouriteList(fillListInFavPage);
-            getFavouriteList(fillSelectMenuInDayPage);
-        }
-    });
+    var onSuccess = function () {
+        alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
+        $('#favList').children().remove('li');
+        getFavouriteList(fillListInFavPage);
+        getFavouriteList(fillSelectMenuInDayPage);
+    };
+
+    authenticatedAjax("POST", "hours/deleteFavourite", delFavourite, onSuccess);
 }
 
 function fillSelectMenuInDayPage(favList) {
@@ -553,9 +555,9 @@ function getDayList(newDay) {
                 var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
                 var projectdescription = val['description'];
                 //super ugly hack
-                if (projectKey in favDescription) {
-                    projectdescription = favDescription[projectKey].description;
-                }
+//                if (projectKey in favDescription) {
+//                    projectdescription = favDescription[projectKey].description;
+//                }
                 var newhr = new HourRegistration(key, val['projectnumber'], val['activitycode'],
                     val['description'], val['hours'], val['submitted'], val['approved'], projectdescription);
                 regMap[key] = newhr;
@@ -581,7 +583,7 @@ function getDayList(newDay) {
         }
     };
 
-    authenticatedAjax("GET", "hours/daylist", { day:"today"}, onSuccess);
+    authenticatedAjax("GET", "hours/daylist", { day:"2012-09-17"}, onSuccess); // todo: get today's date instead
 }
 
 /*
