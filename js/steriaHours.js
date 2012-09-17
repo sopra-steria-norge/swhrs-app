@@ -1,5 +1,8 @@
 // Declare global variables
 var pageVars = {};
+var dateT;
+var monthT;
+var yearT;
 
 //favlist contains a list of Strings to displau favourites in lists, it's filled in getFavourites
 var favList = [];
@@ -18,6 +21,7 @@ var MISSING = "missing";
 var NO_FAV = "NO_FAV";
 var ZERO = 0;
 var today = "today";
+var LOGIN_TOKEN = "loginToken";
 
 //Constructor to make a Favourite object
 function Favourite(projectnumber, activitycode, description, projectname, customername, billable, internalproject) {
@@ -66,28 +70,47 @@ $(document).ready(function () {
     var myDate = new Date();
     dateT = myDate.getDate();
     monthT = myDate.getMonth();
+function findTodaysDate() {
+    var today = new Date();
+    dateT = today.getDate();
+    monthT = today.getMonth();
     if (monthT < 10) {
         monthT = "0" + monthT;
     }
     yearT = myDate.getFullYear();
+    yearT = today.getFullYear();
+}
 
     /*
      * #loginPage
      * Loginform submit
      * Sends the input username and password to the servlet(url: login).
      */
+$(document).on('pageinit', function () {
+    var favLabelVar = $('#favLabel');
+    var hoursLabelVar = $('#hoursLabel');
+    var favVar = $('#fav');
+
+    findTodaysDate();
     $('#loginForm').submit(function () {
         var jsonLogin = {
+        var loginToken = {
             username:$('[name=username]').val(),
             password:saltAndHash($('[name=password]').val()),
             country:$('input[name=radioCountry]:checked').val()
+            password:saltAndHash($('[name=password]').val())
         };
+
         $.ajax({
             type:'POST',
-            url:'http://10.118.18.113:8081/swhrs-app/login',
+            url:'login',
             data:jsonLogin,
+            type:'HEAD',
+            url:'checkAuthentication',
+            headers:{"X-Authentication-Token":JSON.stringify(loginToken)},
             success:function (data) {
                 localStorage.setItem('loginToken', JSON.stringify(jsonLogin));
+                localStorage.setItem(LOGIN_TOKEN, JSON.stringify(loginToken));
                 if (pageVars && pageVars.returnAfterLogin) {
                     $.mobile.changePage(pageVars.returnAfterLogin.toPage);
                 } else {
@@ -95,6 +118,7 @@ $(document).ready(function () {
                 }
             },
             error:function (data) {
+            error:function () {
                 $('#loginErr').text("Wrong username/password");
             }
         });
@@ -107,6 +131,7 @@ $(document).ready(function () {
      * Listens to click of a list element in dayList
      */
     $('#editReg').click(function () {
+    $('#editReg').on('click', function () {
         var err = false;
 
         var hourEditVar = $('#hoursEditLabel');
@@ -123,13 +148,22 @@ $(document).ready(function () {
         var edit = {'taskNumber':editTaskNumber, 'hours':editHours};
         $.ajax({
             type:"POST",
-            url:'http://10.118.18.113:8081/swhrs-app/hours/updateRegistration',
+            url:'hours/updateRegistration',
             data:edit,
             success:function (data) {
                 resetDay();
                 getDayList(today);
             }
         });
+
+        var onSuccess = function () {
+            resetDay();
+            getDayList(today);
+        };
+
+        authenticatedAjax("POST", "hours/updateRegistration", edit, onSuccess);
+
+
     });
 
     /*
@@ -187,17 +221,27 @@ $(document).ready(function () {
      * Gets search data from the server and displays results in a a list. SQL statement is set to return maximum 50 results
      */
     $('#favBtn').click(function () {
+    $('#favBtn').on('click', function () {
         var inputSearch = $("#favSearch").val();
         var search = {search:inputSearch}
+        var searchData = {search:inputSearch}
 
         $.ajax({
             type:"GET",
-            url:'http://10.118.18.113:8081/swhrs-app/hours/searchFavourites',
+            url:'hours/searchFavourites',
             data:search,
             success:function (data) {
                 fillProjectList(data);
             }
         });
+        authenticatedAjax('GET', 'hours/searchFavourites', searchData, fillProjectList);
+
+
+
+
+
+
+
     });
 
     /*
@@ -220,6 +264,7 @@ $(document).ready(function () {
      * Resets the view and gets the list for current day
      */
     $('.dayLink').bind('click', function () {
+    $('.dayLink').on('click', function () {
         resetDay();
         getDayList(today);
     });
@@ -229,6 +274,7 @@ $(document).ready(function () {
      * Removes any previous content and displays current favourites
      */
     $('.favLink').bind('click', function () {
+    $('.favLink').on('click', function () {
         $('#favText').text("User favourites");
         $('#projectList').children().remove('li');
         $('#favList').children().remove('li');
@@ -251,16 +297,36 @@ function authenticate() {
             console.log("User have no localstorage");
             redirectToLogin();
             return;
+function getLoginToken() {
+    return JSON.parse(localStorage.getItem(LOGIN_TOKEN));
+}
+
+$(document).on("pagebeforechange", function (event, data) {
+    if (typeof data.toPage == 'object' && data.toPage.attr('data-needs-auth') == 'true') {
+        if (!getLoginToken()) {
+            redirectToLogin(event);
         }
     } else {
         loginToken = JSON.parse(sessionStorage.getItem("loginToken"));
     }
+});
+
+function authenticatedAjax(type, url, data, success, error) {
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/login',
+        url:'login',
         data:loginToken,
         success:function (data) {
             sessionStorage.setItem('loginToken', JSON.stringify(loginToken));
+        type:type,
+        url:url,
+        data:data,
+        headers:{"X-Authentication-Token":JSON.stringify(getLoginToken())},
+        success:defaultFunction(success),
+        statusCode:{
+            403:function () {
+                redirectToLogin();
+            }
         },
         error:function (data) {
             console.log("loginToken in localStorage was refused by the authentication service.");
@@ -268,6 +334,7 @@ function authenticate() {
             return;
         },
         async: false
+        error: defaultFunction(error)
     });
 }
 $(document).bind("pagebeforechange", function (event, data) {
@@ -278,16 +345,26 @@ $(document).bind("pagebeforechange", function (event, data) {
 });
 
 $('#dayPage').live('pageinit', function () {
+function defaultFunction(arg, val) {
+    return typeof arg === 'function' ? arg : (typeof val === 'function' ? val : (function () { }));
+}
+
+$('#dayPage').on('pageinit', function () {
     getFavouriteList(fillSelectMenuInDayPage);
     getDayList(today);
 });
 
 $('#weekPage').live('pageinit', function () {
+$('#weekPage').on('pageinit', function () {
     getWeekList("thisWeek");
 });
 
 
 function redirectToLogin() {
+function redirectToLogin(event) {
+    if (event) {
+        event.preventDefault();
+    }
     $.mobile.changePage("#loginPage", { changeHash:false });
 }
 
@@ -298,12 +375,20 @@ function redirectToLogin() {
 function postHourRegistration(myData) {
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/registration',
+        url:'hours/registration',
         data:myData,
         success:function () {
             getDayList(today);
             resetDay();
         }
+    authenticatedAjax('POST', 'hours/registration', myData, function () {
+        getDayList(today);
+        resetDay();
+
+
+
+
+
     });
 }
 
@@ -315,11 +400,19 @@ function updatePeriod() {
     options = {'option':1};
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/updatePeriod',
+        url:'hours/updatePeriod',
         data:options,
         success:function (data) {
         }
     });
+    console.log("updatePeriod not yet implemented")
+//    options = {'option':1};
+//    authenticatedAjax("POST", "hours/updatePeriod", options);
+
+
+
+
+
 }
 
 
@@ -372,7 +465,7 @@ function getWeekList(newWeek) {
     $('#weekList').children().remove('li');
     $.ajax({
         type:"GET",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/week',
+        url:'hours/week',
         data:week,
         success:function (data) {
             var dateArray = new Array();
@@ -393,10 +486,34 @@ function getWeekList(newWeek) {
                         dateArray.push(key);
                         hoursArray.push(data[key]);
                     }
+    authenticatedAjax("GET", "hours/week", function (data) {
+        var dateArray = new Array();
+        var hoursArray = new Array();
+        var dayArray = new Array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
+        var dataArray = new Array();
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+                if (key === "weekNumber") {
+                    $('#hdrWeek').children('h1').text(data[key]);
+                } else if (key === "dateHdr") {
+                    var hdrDayText = data[key].split(' ')[0];
+                    var hdrDateText = data[key].split(' ')[1];
+                    var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
+                    $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
+                } else {
+                    dataArray.push(data[key][0], key, data[key][1], data[key][2]);
+                    dateArray.push(key);
+                    hoursArray.push(data[key]);
+
+
+
+
+
                 }
             }
             updateWeekList(dateArray.sort(), data);
         }
+        updateWeekList(dateArray.sort(), data);
     });
 }
 
@@ -444,19 +561,29 @@ function deleteRegistration(taskNr, listid) {
     var delreg = {taskNumber:taskNr}
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/deleteRegistration',
+        url:'hours/deleteRegistration',
         data:delreg,
         success:function (data) {
+
+    var onSuccess = function onSuccess() {
+        return function (data) {
+
+
             if (data.indexOf('Already submitted') != -1) {
                 $.mobile.changePage($("#dialogPopUpNoDelete"));
             } else {
                 $('#reg' + taskNr).remove();
                 resetDay();
                 getDayList("today");
+                getDayList("2012-09-17"); // todo: get today's date instead
             }
         },
         async:false
     });
+        };
+    };
+
+    authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
     return true;
 }
 
@@ -478,11 +605,20 @@ function getFavouriteList(addToPage) {
     favList = [];
     $.ajax({
         type:"GET",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/favourite',
+        url:'hours/favourite',
         success:function (data) {
             for (var key in data) {
                 var jsonMap = data[key];
                 var newFav = new Favourite(jsonMap['projectnumber'], jsonMap['activitycode'], jsonMap['description'], jsonMap['projectname'], jsonMap['customername'], jsonMap['billable'], jsonMap['internalproject']);
+    var onSuccess = function (data) {
+        favMap = {};
+        favList = [];
+        for (var key in data) {
+            var jsonMap = data[key];
+            var newFav = new Favourite(jsonMap['projectnumber'], jsonMap['activitycode'], jsonMap['description'], jsonMap['projectname'], jsonMap['customername'], jsonMap['billable'], jsonMap['internalproject']);
+
+
+
 
                 favMap[key] = newFav;
                 var favtext = newFav.projectname + " (" + newFav.activitycode + ") " + newFav.description;
@@ -492,6 +628,13 @@ function getFavouriteList(addToPage) {
         },
         async:false
     });
+            favMap[key] = newFav;
+            var favtext = newFav.projectname + " (" + newFav.activitycode + ") " + newFav.description;
+            favList.push(favtext);
+        }
+        addToPage(favList);
+    };
+    authenticatedAjax("GET", "hours/favourite", {}, onSuccess);
 }
 
 function fillListInFavPage(favlist) {
@@ -510,6 +653,8 @@ function fillProjectList(data) {
     $('#projectList').children().remove('li');
     for (key in data) {
         var jsonMap = data[key];
+    for (LOGIN_TOKEN in data) {
+        var jsonMap = data[LOGIN_TOKEN];
         var projects = jsonMap['projectnumber'] + " (" + jsonMap['activitycode'] + ") " + jsonMap['description'];
         var pNr = jsonMap['projectnumber'];
         var aC = jsonMap['activitycode'];
@@ -526,13 +671,23 @@ function addFavourites(pNr, aC) {
     var favourite = {'projectNumber':pNr, 'activityCode':aC}
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/addFavourites',
+        url:'hours/addFavourites',
         data:favourite,
         success:function (data) {
             getFavouriteList(fillSelectMenuInDayPage);
             alert('Added project with nr ' + pNr + ' to favourite list');
         }
     });
+    var data = {'projectNumber':pNr, 'activityCode':aC}
+    var onSuccess = function () {
+        getFavouriteList(fillSelectMenuInDayPage);
+        alert('Added project with nr ' + pNr + ' to favourite list');
+    };
+    authenticatedAjax("POST", "hours/addFavourites", data, onSuccess);
+
+
+
+
 }
 
 function deleteFavourite(key) {
@@ -541,7 +696,7 @@ function deleteFavourite(key) {
 
     $.ajax({
         type:"POST",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/deleteFavourite',
+        url:'hours/deleteFavourite',
         data:delFavourite,
         success:function () {
             alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
@@ -551,7 +706,20 @@ function deleteFavourite(key) {
         },
         async:false
     });
+    var onSuccess = function () {
+        alert('Deleted project with nr ' + fav.projectnumber + ' from favourite list');
+        $('#favList').children().remove('li');
+        getFavouriteList(fillListInFavPage);
+        getFavouriteList(fillSelectMenuInDayPage);
+    };
 
+
+
+
+
+
+
+    authenticatedAjax("POST", "hours/deleteFavourite", delFavourite, onSuccess);
 }
 
 function fillSelectMenuInDayPage(favList) {
@@ -577,7 +745,7 @@ function getDayList(newDay) {
     regMap = {};
     $.ajax({
         type:"GET",
-        url:'http://10.118.18.113:8081/swhrs-app/hours/daylist',
+        url:'hours/daylist',
         data:{day:newDay},
         success:function (data) {
             for (var key in data) {
@@ -594,6 +762,25 @@ function getDayList(newDay) {
                 } else {
                     var val = data[key];
                     totalHours += val['hours'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
                     var projectdescription = val['description'];
@@ -619,13 +806,58 @@ function getDayList(newDay) {
                     $('#dayList').append($('<li id="reg:' + key + '"/>').html(editlink +
                         newhr['projectDescription'] + '</a><span class="ui-li-count">' + newhr['hours'] + ' hours ' +
                         '</span>' + buttonlink)).listview('refresh');
+    var onSuccess = function (data) {
+        for (var key in data) {
+            var jsonMap = data[key];
+            if (jsonMap['projectnumber'] == "LUNSJ") {
+                $('#lunch').val(0);
+            }
+            $('#lunch').slider('refresh');
+            if (key === "date") {
+                var hdrDayText = data[key].split(' ')[0];
+                var hdrDateText = data[key].split(' ')[1];
+                var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
+                $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
+            } else {
+                var val = data[key];
+                totalHours += val['hours'];
+
+                var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
+                var projectdescription = val['description'];
+                //super ugly hack
+//                if (projectKey in favDescription) {
+//                    projectdescription = favDescription[projectKey].description;
+//                }
+                var newhr = new HourRegistration(key, val['projectnumber'], val['activitycode'],
+                    val['description'], val['hours'], val['submitted'], val['approved'], projectdescription);
+                regMap[key] = newhr;
+                var editlink = '';
+                var buttonlink = '';
+                if (newhr['approved']) {
+                    editlink = '<a href="#">';
+                    buttonlink = '<a href="#" data-icon="check" data-theme="e"></a>';
+                } else if (newhr['submitted']) {
+                    editlink = '<a href="#" data-icon="check">';
+                    buttonlink = '<a href="#" class="split-button split-button-inactive" data-icon="check"></a>';
+                } else {
+                    editlink = '<a href="#" data-theme="b" data-rel="popup" onclick="editRegistration(' + newhr.tasknumber + ')">';
+                    buttonlink = '<a href="#" class="split-button split-button-active" onclick="deleteRegistration(' + newhr.tasknumber + ')" data-icon="delete"></a>';
                 }
+                $('#dayList').append($('<li id="reg:' + key + '"/>').html(editlink +
+                    newhr['projectDescription'] + '</a><span class="ui-li-count">' + newhr['hours'] + ' hours ' +
+                    '</span>' + buttonlink)).listview('refresh');
             }
             if (totalHours != 0) {
                 $('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours' + '</span>')).listview('refresh');
             }
         }
     });
+        if (totalHours != 0) {
+            $('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours' + '</span>')).listview('refresh');
+        }
+    };
+
+    authenticatedAjax("GET", "hours/daylist", { day:"2012-09-17"}, onSuccess); // todo: get today's date instead
 }
 
 /*
