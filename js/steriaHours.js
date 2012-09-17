@@ -18,6 +18,7 @@ var MISSING = "missing";
 var NO_FAV = "NO_FAV";
 var ZERO = 0;
 var today = "today";
+var LOGIN_TOKEN = "loginToken";
 
 //Constructor to make a Favourite object
 function Favourite(projectnumber, activitycode, description, projectname, customername, billable, internalproject) {
@@ -71,23 +72,18 @@ $(document).ready(function () {
     }
     yearT = myDate.getFullYear();
 
-    /*
-     * #loginPage
-     * Loginform submit
-     * Sends the input username and password to the servlet(url: login).
-     */
     $('#loginForm').submit(function () {
-        var jsonLogin = {
+        var loginToken = {
             username:$('[name=username]').val(),
-            password:saltAndHash($('[name=password]').val()),
-            country:$('input[name=radioCountry]:checked').val()
+            password:saltAndHash($('[name=password]').val())
         };
+
         $.ajax({
-            type:'POST',
-            url:'login',
-            data:jsonLogin,
+            type:'HEAD',
+            url:'checkAuthentication',
+            headers:{"X-Authentication-Token":JSON.stringify(loginToken)},
             success:function (data) {
-                localStorage.setItem('loginToken', JSON.stringify(jsonLogin));
+                localStorage.setItem(LOGIN_TOKEN, JSON.stringify(loginToken));
                 if (pageVars && pageVars.returnAfterLogin) {
                     $.mobile.changePage(pageVars.returnAfterLogin.toPage);
                 } else {
@@ -121,15 +117,13 @@ $(document).ready(function () {
         }
 
         var edit = {'taskNumber':editTaskNumber, 'hours':editHours};
-        $.ajax({
-            type:"POST",
-            url:'hours/updateRegistration',
-            data:edit,
-            success:function (data) {
-                resetDay();
-                getDayList(today);
-            }
-        });
+
+        var onSuccess = function() {
+            resetDay();
+            getDayList(today);
+        };
+
+        authenticatedAjax("POST", "hours/updateRegistration", edit, onSuccess);
     });
 
     /*
@@ -188,15 +182,10 @@ $(document).ready(function () {
      */
     $('#favBtn').click(function () {
         var inputSearch = $("#favSearch").val();
-        var search = {search:inputSearch}
+        var searchData = {search:inputSearch}
 
-        $.ajax({
-            type:"GET",
-            url:'hours/searchFavourites',
-            data:search,
-            success:function (data) {
-                fillProjectList(data);
-            }
+        authenticatedAjax('GET', 'hours/searchFavourites', searchData, function (data) {
+            fillProjectList(data);
         });
     });
 
@@ -238,44 +227,34 @@ $(document).ready(function () {
 
 });
 
-/*
- * Checks if the page is secured, if so checks if the user is authenticated.
- * If not, redirects to login page
- */
-function authenticate() {
-    var loginToken;
-    if (!sessionStorage.getItem("loginToken")) {
-        console.log("User have no sessionstorage");
-        loginToken = JSON.parse(localStorage.getItem("loginToken"));
-        if (!loginToken) {
-            console.log("User have no localstorage");
-            redirectToLogin();
-            return;
-        }
-    } else {
-        loginToken = JSON.parse(sessionStorage.getItem("loginToken"));
-    }
-    $.ajax({
-        type:"POST",
-        url:'login',
-        data:loginToken,
-        success:function (data) {
-            sessionStorage.setItem('loginToken', JSON.stringify(loginToken));
-        },
-        error:function (data) {
-            console.log("loginToken in localStorage was refused by the authentication service.");
-            redirectToLogin();
-            return;
-        },
-        async: false
-    });
+function getLoginToken() {
+    return $.parseJSON(localStorage.getItem(LOGIN_TOKEN));
 }
+
 $(document).bind("pagebeforechange", function (event, data) {
     if (typeof data.toPage == 'object' && data.toPage.attr('data-needs-auth') == 'true') {
         console.log("User needs to be authenticated to reach this page");
-        authenticate();
+        if (!getLoginToken()) {
+            redirectToLogin(event);
+        }
     }
 });
+
+function authenticatedAjax(type, url, data, success, error) {
+    $.ajax({
+        type:type,
+        url:url,
+        data:data,
+        headers:{"X-Authentication-Token":JSON.stringify(getLoginToken())},
+        success:defaultFunction(success),
+        error:defaultFunction(error)
+    });
+}
+
+function defaultFunction(arg) {
+    return typeof arg === 'function' ? arg : (function () {
+    });
+}
 
 $('#dayPage').live('pageinit', function () {
     getFavouriteList(fillSelectMenuInDayPage);
@@ -287,7 +266,8 @@ $('#weekPage').live('pageinit', function () {
 });
 
 
-function redirectToLogin() {
+function redirectToLogin(event) {
+    event.preventDefault();
     $.mobile.changePage("#loginPage", { changeHash:false });
 }
 
@@ -296,14 +276,9 @@ function redirectToLogin() {
  * Sends hourRegistration data to the servlet
  */
 function postHourRegistration(myData) {
-    $.ajax({
-        type:"POST",
-        url:'hours/registration',
-        data:myData,
-        success:function () {
-            getDayList(today);
-            resetDay();
-        }
+    authenticatedAjax('POST', 'hours/registration', myData, function () {
+        getDayList(today);
+        resetDay();
     });
 }
 
@@ -312,14 +287,9 @@ function postHourRegistration(myData) {
  * Change option value to 0 to reopen the period
  */
 function updatePeriod() {
-    options = {'option':1};
-    $.ajax({
-        type:"POST",
-        url:'hours/updatePeriod',
-        data:options,
-        success:function (data) {
-        }
-    });
+    console.log("updatePeriod not yet implemented")
+//    options = {'option':1};
+//    authenticatedAjax("POST", "hours/updatePeriod", options);
 }
 
 
@@ -370,33 +340,28 @@ function getWeekList(newWeek) {
     var weekDays = new Array("", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
     var week = {week:newWeek};
     $('#weekList').children().remove('li');
-    $.ajax({
-        type:"GET",
-        url:'hours/week',
-        data:week,
-        success:function (data) {
-            var dateArray = new Array();
-            var hoursArray = new Array();
-            var dayArray = new Array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
-            var dataArray = new Array();
-            for (var key in data) {
-                if (data.hasOwnProperty(key)) {
-                    if (key === "weekNumber") {
-                        $('#hdrWeek').children('h1').text(data[key]);
-                    } else if (key === "dateHdr") {
-                        var hdrDayText = data[key].split(' ')[0];
-                        var hdrDateText = data[key].split(' ')[1];
-                        var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
-                        $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
-                    } else {
-                        dataArray.push(data[key][0], key, data[key][1], data[key][2]);
-                        dateArray.push(key);
-                        hoursArray.push(data[key]);
-                    }
+    authenticatedAjax("GET", "hours/week", function (data) {
+        var dateArray = new Array();
+        var hoursArray = new Array();
+        var dayArray = new Array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
+        var dataArray = new Array();
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+                if (key === "weekNumber") {
+                    $('#hdrWeek').children('h1').text(data[key]);
+                } else if (key === "dateHdr") {
+                    var hdrDayText = data[key].split(' ')[0];
+                    var hdrDateText = data[key].split(' ')[1];
+                    var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
+                    $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
+                } else {
+                    dataArray.push(data[key][0], key, data[key][1], data[key][2]);
+                    dateArray.push(key);
+                    hoursArray.push(data[key]);
                 }
             }
-            updateWeekList(dateArray.sort(), data);
         }
+        updateWeekList(dateArray.sort(), data);
     });
 }
 
@@ -442,11 +407,9 @@ function updateWeekList(dateArray, data) {
  */
 function deleteRegistration(taskNr, listid) {
     var delreg = {taskNumber:taskNr}
-    $.ajax({
-        type:"POST",
-        url:'hours/deleteRegistration',
-        data:delreg,
-        success:function (data) {
+
+    function onSuccess() {
+        return function (data) {
             if (data.indexOf('Already submitted') != -1) {
                 $.mobile.changePage($("#dialogPopUpNoDelete"));
             } else {
@@ -454,9 +417,10 @@ function deleteRegistration(taskNr, listid) {
                 resetDay();
                 getDayList("today");
             }
-        },
-        async:false
-    });
+        };
+    }
+
+    authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess());
     return true;
 }
 
@@ -474,24 +438,20 @@ function editRegistration(tasknumber) {
 }
 
 function getFavouriteList(addToPage) {
-    favMap = {};
-    favList = [];
-    $.ajax({
-        type:"GET",
-        url:'hours/favourite',
-        success:function (data) {
-            for (var key in data) {
-                var jsonMap = data[key];
-                var newFav = new Favourite(jsonMap['projectnumber'], jsonMap['activitycode'], jsonMap['description'], jsonMap['projectname'], jsonMap['customername'], jsonMap['billable'], jsonMap['internalproject']);
+    var onSuccess = function (data) {
+        favMap = {};
+        favList = [];
+        for (var key in data) {
+            var jsonMap = data[key];
+            var newFav = new Favourite(jsonMap['projectnumber'], jsonMap['activitycode'], jsonMap['description'], jsonMap['projectname'], jsonMap['customername'], jsonMap['billable'], jsonMap['internalproject']);
 
-                favMap[key] = newFav;
-                var favtext = newFav.projectname + " (" + newFav.activitycode + ") " + newFav.description;
-                favList.push(favtext);
-            }
-            addToPage(favList);
-        },
-        async:false
-    });
+            favMap[key] = newFav;
+            var favtext = newFav.projectname + " (" + newFav.activitycode + ") " + newFav.description;
+            favList.push(favtext);
+        }
+        addToPage(favList);
+    };
+    authenticatedAjax("GET", "hours/favourite", {}, onSuccess);
 }
 
 function fillListInFavPage(favlist) {
@@ -508,8 +468,8 @@ function fillListInFavPage(favlist) {
 function fillProjectList(data) {
     $('#favList').children().remove('li');
     $('#projectList').children().remove('li');
-    for (key in data) {
-        var jsonMap = data[key];
+    for (LOGIN_TOKEN in data) {
+        var jsonMap = data[LOGIN_TOKEN];
         var projects = jsonMap['projectnumber'] + " (" + jsonMap['activitycode'] + ") " + jsonMap['description'];
         var pNr = jsonMap['projectnumber'];
         var aC = jsonMap['activitycode'];
@@ -548,10 +508,8 @@ function deleteFavourite(key) {
             $('#favList').children().remove('li');
             getFavouriteList(fillListInFavPage);
             getFavouriteList(fillSelectMenuInDayPage);
-        },
-        async:false
+        }
     });
-
 }
 
 function fillSelectMenuInDayPage(favList) {
@@ -575,57 +533,55 @@ function getDayList(newDay) {
     if (newDay == 1)getFavouriteList(fillSelectMenuInDayPage);
     var totalHours = 0;
     regMap = {};
-    $.ajax({
-        type:"GET",
-        url:'hours/daylist',
-        data:{day:newDay},
-        success:function (data) {
-            for (var key in data) {
-                var jsonMap = data[key];
-                if (jsonMap['projectnumber'] == "LUNSJ") {
-                    $('#lunch').val(0);
-                }
-                $('#lunch').slider('refresh');
-                if (key === "date") {
-                    var hdrDayText = data[key].split(' ')[0];
-                    var hdrDateText = data[key].split(' ')[1];
-                    var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
-                    $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
-                } else {
-                    var val = data[key];
-                    totalHours += val['hours'];
 
-                    var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
-                    var projectdescription = val['description'];
-                    //super ugly hack
-                    if (projectKey in favDescription) {
-                        projectdescription = favDescription[projectKey].description;
-                    }
-                    var newhr = new HourRegistration(key, val['projectnumber'], val['activitycode'],
-                        val['description'], val['hours'], val['submitted'], val['approved'], projectdescription);
-                    regMap[key] = newhr;
-                    var editlink = '';
-                    var buttonlink = '';
-                    if (newhr['approved']) {
-                        editlink = '<a href="#">';
-                        buttonlink = '<a href="#" data-icon="check" data-theme="e"></a>';
-                    } else if (newhr['submitted']) {
-                        editlink = '<a href="#" data-icon="check">';
-                        buttonlink = '<a href="#" class="split-button split-button-inactive" data-icon="check"></a>';
-                    } else {
-                        editlink = '<a href="#" data-theme="b" data-rel="popup" onclick="editRegistration(' + newhr.tasknumber + ')">';
-                        buttonlink = '<a href="#" class="split-button split-button-active" onclick="deleteRegistration(' + newhr.tasknumber + ')" data-icon="delete"></a>';
-                    }
-                    $('#dayList').append($('<li id="reg:' + key + '"/>').html(editlink +
-                        newhr['projectDescription'] + '</a><span class="ui-li-count">' + newhr['hours'] + ' hours ' +
-                        '</span>' + buttonlink)).listview('refresh');
-                }
+    var onSuccess = function (data) {
+        for (var key in data) {
+            var jsonMap = data[key];
+            if (jsonMap['projectnumber'] == "LUNSJ") {
+                $('#lunch').val(0);
             }
-            if (totalHours != 0) {
-                $('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours' + '</span>')).listview('refresh');
+            $('#lunch').slider('refresh');
+            if (key === "date") {
+                var hdrDayText = data[key].split(' ')[0];
+                var hdrDateText = data[key].split(' ')[1];
+                var dateText = hdrDateText.split('-')[2] + "." + hdrDateText.split('-')[1] + "." + hdrDateText.split('-')[0]
+                $('#hdrDay').children('h1').text(weekDays[hdrDayText] + " " + dateText);
+            } else {
+                var val = data[key];
+                totalHours += val['hours'];
+
+                var projectKey = val['projectnumber'] + '<:>' + val['activitycode'];
+                var projectdescription = val['description'];
+                //super ugly hack
+                if (projectKey in favDescription) {
+                    projectdescription = favDescription[projectKey].description;
+                }
+                var newhr = new HourRegistration(key, val['projectnumber'], val['activitycode'],
+                    val['description'], val['hours'], val['submitted'], val['approved'], projectdescription);
+                regMap[key] = newhr;
+                var editlink = '';
+                var buttonlink = '';
+                if (newhr['approved']) {
+                    editlink = '<a href="#">';
+                    buttonlink = '<a href="#" data-icon="check" data-theme="e"></a>';
+                } else if (newhr['submitted']) {
+                    editlink = '<a href="#" data-icon="check">';
+                    buttonlink = '<a href="#" class="split-button split-button-inactive" data-icon="check"></a>';
+                } else {
+                    editlink = '<a href="#" data-theme="b" data-rel="popup" onclick="editRegistration(' + newhr.tasknumber + ')">';
+                    buttonlink = '<a href="#" class="split-button split-button-active" onclick="deleteRegistration(' + newhr.tasknumber + ')" data-icon="delete"></a>';
+                }
+                $('#dayList').append($('<li id="reg:' + key + '"/>').html(editlink +
+                    newhr['projectDescription'] + '</a><span class="ui-li-count">' + newhr['hours'] + ' hours ' +
+                    '</span>' + buttonlink)).listview('refresh');
             }
         }
-    });
+        if (totalHours != 0) {
+            $('#dayList').prepend($("<li></li>").html('Total hours: <span class="ui-li-count">' + totalHours + ' hours' + '</span>')).listview('refresh');
+        }
+    };
+
+    authenticatedAjax("GET", "hours/daylist", { day:"today"}, onSuccess);
 }
 
 /*
