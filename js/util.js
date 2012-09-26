@@ -18,7 +18,3 @@ function defaultFunction(arg, defaultFunction) {
     return typeof arg === 'function' ? arg : (typeof defaultFunction === 'function' ? defaultFunction : (function () {
     }));
 }
-
-function weekDayForDate(date) {
-    return WEEK_DAYS[new Date(date).getDay()];
-}

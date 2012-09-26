@@ -18,7 +18,9 @@
     <script type="text/javascript" charset="utf-8" src="js/lib/core.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/lib/sha1.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/lib/enc-base64.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lib/moment.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/util.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/global-variables.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/model.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/view.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/controller.js"></script>
@@ -54,11 +56,11 @@
                        data-theme="b"/>
             </div>
 
-            <fieldset class="ui-grid-a">
+            <div class="ui-grid-a">
                 <div id="dayListButtonDiv" class="ui-block-a">
                     <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
                 </div>
-            </fieldset>
+            </div>
         </form>
         <ul id="dayList" data-role="listview" data-inset="true" data-theme="b"></ul>
     </div>
@@ -88,7 +90,7 @@
     <div data-role="header" id="hdrWeek" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <a href="#" id="prevWeekBtn" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Prev</a>
 
-        <h1></h1>
+        <h1 id="weekPageTitle"></h1>
         <a href="#" id="nextWeekBtn" data-icon="arrow-r" data-iconpos="right" data-transition="slide">Next</a>
     </div>
 
@@ -177,6 +179,7 @@
                 <option value="1" selected="selected">Yes</option>
             </select>
         </div>
+        <a href="#" data-role="button" id="logoutBtn" data-transition="pop" data-theme="d">Logout</a>
     </div>
 
     <!-- Settingspage footer -->
