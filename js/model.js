@@ -1,37 +1,35 @@
 function MyDate(fromDate) {
-    var self = this;
-
     if (fromDate) {
         this.date = new Date(fromDate);
     } else {
         this.date = new Date();
     }
-
-    this.setDate = function (fromDate, days) {
-        if (fromDate) {
-            if (!days) {
-                days = 0;
-            }
-            self.date.setTime(fromDate.date.getTime() + 24 * 60 * 60 * 1000 * days);
-        }
-    };
-
-    this.setDateFromString = function (fromDate) {
-        self.date = moment(fromDate, DATE_FORMAT).toDate();
-    };
-
-    this.toString = function () {
-        return moment(self.date).format("YYYY-MM-DD");
-    };
-
-    this.toDateString = function () {
-        return moment(self.date).format("DD.MM.YY");
-    };
-
-    this.toWeekDayString = function () {
-        return WEEK_DAYS[self.date.getDay()];
-    };
 }
+
+MyDate.prototype.setDate = function(fromDate, days) {
+    if (fromDate) {
+        if (!days) {
+            days = 0;
+        }
+        this.date.setTime(fromDate.date.getTime() + 24 * 60 * 60 * 1000 * days);
+    }
+};
+
+MyDate.prototype.setDateFromString = function(fromDate) {
+    this.date = moment(fromDate, DATE_FORMAT).toDate();
+};
+
+MyDate.prototype.toString = function() {
+    return moment(this.date).format("YYYY-MM-DD");
+};
+
+MyDate.prototype.toDateString = function() {
+    return moment(this.date).format("DD.MM.YY");
+};
+
+MyDate.prototype.toWeekDayString = function() {
+    return WEEK_DAYS[this.date.getDay()];
+};
 
 function updateFavouriteModel(projects) {
     favMap = $.extend(projects, {});
@@ -39,6 +37,8 @@ function updateFavouriteModel(projects) {
 
 function updateWeekModel(days) {
     weekMap = $.extend(days, {});
+    weekDateList = Object.keys(weekMap);
+    weekDateList.sort();
     findPeriodBoundaries(weekMap);
 }
 

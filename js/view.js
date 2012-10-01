@@ -55,9 +55,9 @@ function fillDayView() {
             var entryText = "";
             if (registration.projectNumber + "_" + registration.activityCode in favMap) {
                 var project = favMap[registration.projectNumber + "_" + registration.activityCode];
-                entryText = project.projectName + " (" + project.projectNumber + "), " + project.description + "<p>" + project.customerName + "</p>";
+                entryText = project.description + "<p>" + project.projectName + " (" + project.projectNumber + "), " + project.customerName + "</p>";
             } else {
-                entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + ", " + registration.description + "<p></p>";
+                entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + registration.description + "</p>";
             }
 
             dayListDomElement.append($("<li data-theme='b' " + dataIcon + "></li>").html('<a href="#">' + entryText + '</a><span class="ui-li-count">' + registration.hours + ' hours' + '</span>'))
@@ -75,7 +75,8 @@ function fillWeekView() {
 
     var hoursPerDay = {};
     var periodSubmitted = false;
-    $.each(weekMap, function (date, registrations) {
+    $.each(weekDateList, function (i, date) {
+        var registrations = weekMap[date];
         var daySubmitted = false;
         var dayApproved = false;
         hoursPerDay[date] = 0;

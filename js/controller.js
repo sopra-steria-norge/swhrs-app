@@ -12,26 +12,26 @@ $(document).on("pagebeforechange", function (event, data) {
     }
 });
 
-function registerModelViewBinding() {
-    $("#dayPage").on('modelChanged', function () {
-        fillDayView();
-        fillSelectMenuInDayView();
-    });
-
-    $("#weekPage").on('modelChanged', function () {
-        fillWeekView();
-    });
-
-    $("#favPage").on('dataSyncronized', function () {
-        fillCurrentListInFavPage();
-    });
-}
-
-$(document).on('pageinit', function () {
+$(document).on('ready', function () {
     var dayPageDomElement = $("#dayPage");
-    var syncDataOnWeekPage = syncData($("#weekPage"));
+    var weekPageDomElement = $("#weekPage");
+    var syncDataOnWeekPage = syncData(weekPageDomElement);
     var syncDataOnDayPage = syncData(dayPageDomElement);
 
+    function registerModelViewBinding() {
+        dayPageDomElement.on('modelChanged', function () {
+            fillDayView();
+            fillSelectMenuInDayView();
+        });
+
+        weekPageDomElement.on('modelChanged', function () {
+            fillWeekView();
+        });
+
+        $("#favPage").on('dataSyncronized', function () {
+            fillCurrentListInFavPage();
+        });
+    }
 
     function registerDayPageEventHandlers() {
         $('#prevDayBtn').click(function () {
@@ -176,7 +176,7 @@ $(document).on('pageinit', function () {
 
             $.ajax({
                 type:'HEAD',
-                url:'checkAuthentication',
+                url:serverUrl + 'checkAuthentication',
                 headers:{
                     "X-Authentication-Token":JSON.stringify(loginToken)
                 },
@@ -204,11 +204,11 @@ $(document).on('pageinit', function () {
     }
 
     registerModelViewBinding();
-    registerWeekPageEventHandlers();
     registerDayPageEventHandlers();
-    registerLoginPageEventHandlers();
-    registerFavPageEventHandlers();
-    registerSettingPageEventHandlers();
+    registerWeekPageEventHandlers();
+//    registerLoginPageEventHandlers();
+//    registerFavPageEventHandlers();
+//    registerSettingPageEventHandlers();
 
     $(document).on("modelChanged", function () {
         if (currentDate.date > periodEndDate.date || currentDate.date < periodStartDate.date || periodEndDate.date < periodStartDate.date) {
@@ -216,7 +216,7 @@ $(document).on('pageinit', function () {
         }
     });
 
-    $('#dayPage').on('pagebeforeshow', function () {
+    dayPageDomElement.on('pagebeforeshow',function () {
         try {
             fillDayView();
             fillSelectMenuInDayView();
@@ -225,15 +225,16 @@ $(document).on('pageinit', function () {
         }
     });
 
-    $('#weekPage').on('pagebeforeshow', function () {
+    weekPageDomElement.on('pagebeforeshow', function () {
         fillWeekView();
     });
 
 //    $('#favPage').on('pagebeforeshow', function () { });
 
 //    $('#settingsPage').on('pagebeforeshow', function () { });
-
-});
+    syncDataOnDayPage();
+})
+;
 
 function redirectToLogin() {
     $.mobile.changePage("#loginPage", {
@@ -252,9 +253,10 @@ function removeLoginToken() {
 function authenticatedAjax(type, url, data, success, error) {
     $.ajax({
         type:type,
-        url:url,
+        url:serverUrl + url,
         cache:false,
         data:data,
+        dataType:'json',
         headers:{
             "X-Authentication-Token":JSON.stringify(getLoginToken())
         },
