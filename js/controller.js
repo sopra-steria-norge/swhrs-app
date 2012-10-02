@@ -55,19 +55,19 @@ $(document).on('ready', function () {
         $('#dayForm').submit(function () {
             var err = false;
             // Reset highlighted form elements
-            $('#favLabel').removeClass(MISSING);
-            $('#hoursLabel').removeClass(MISSING);
+//            $('#favLabel').removeClass(MISSING);
+//            $('#hoursLabel').removeClass(MISSING);
             $.mobile.silentScroll(100);
             hourForm = $("#hours").val();
-
-            if ($('#fav').val() === NO_FAV) {
-                $('#favLabel').addClass(MISSING);
-                err = true;
-            }
-            if (hourForm === ZERO) {
-                $('#hoursLabel').addClass(MISSING);
-                err = true;
-            }
+//
+//            if ($('#fav').val() === NO_FAV) {
+//                $('#favLabel').addClass(MISSING);
+//                err = true;
+//            }
+//            if (hourForm === ZERO) {
+//                $('#hoursLabel').addClass(MISSING);
+//                err = true;
+//            }
 
 
             // Validation error of input fields
@@ -142,12 +142,9 @@ $(document).on('ready', function () {
          * If a day is clicked it navigates to that day in dayView
          */
         $('#weekList').on('click', 'li', function () {
-            var dayString = $(this).html();
-            var index = dayString.indexOf('<p class="ui-li-desc">') + '<p class="ui-li-desc">'.length;
-            var dateString = dayString.substring(index, index + 10);
-
-            currentDate.setDateFromString(dateString);
-            $.mobile.changePage($("#dayPage"));
+            var date = $(this).attr("id").substring(4);
+            currentDate.setDateFromString(date);
+            $.mobile.changePage("#dayPage");
         });
 
     }
@@ -326,7 +323,7 @@ function deleteRegistration(taskNr, listid) {
     var onSuccess = function onSuccess() {
         return function (data) {
             if (data.indexOf('Already submitted') !== -1) {
-                $.mobile.changePage($("#dialogPopUpNoDelete"));
+                $.mobile.changePage("#dialogPopUpNoDelete");
             } else {
                 $('#reg' + taskNr).remove();
                 syncData($("#dayPage"))();

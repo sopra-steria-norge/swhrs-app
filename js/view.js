@@ -85,10 +85,10 @@ function fillWeekView() {
             daySubmitted |= registration.submitted;
             dayApproved |= registration.approved;
         });
-        var dataIcon = daySubmitted ? " data-icon='check'" : "";
+        var dataIcon = daySubmitted ? "check" : "arrow-l";
 
         var myDate = new MyDate(date);
-        weekListDomElement.append($("<li data-theme='b' " + dataIcon + "></li>").html('<a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + hoursPerDay[date] + ' hours' + '</span>'));
+        weekListDomElement.append($("<li id='day:"+ date.toString() +"' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'></li>").html('<a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + hoursPerDay[date] + ' hours' + '</span>'));
     });
 
     weekListDomElement.listview("refresh", true);

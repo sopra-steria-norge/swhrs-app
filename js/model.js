@@ -6,7 +6,7 @@ function MyDate(fromDate) {
     }
 }
 
-MyDate.prototype.setDate = function(fromDate, days) {
+MyDate.prototype.setDate = function (fromDate, days) {
     if (fromDate) {
         if (!days) {
             days = 0;
@@ -15,20 +15,20 @@ MyDate.prototype.setDate = function(fromDate, days) {
     }
 };
 
-MyDate.prototype.setDateFromString = function(fromDate) {
+MyDate.prototype.setDateFromString = function (fromDate) {
     this.date = moment(fromDate, DATE_FORMAT).toDate();
 };
 
-MyDate.prototype.toString = function() {
+MyDate.prototype.toString = function () {
     return moment(this.date).format("YYYY-MM-DD");
 };
 
-MyDate.prototype.toDateString = function() {
+MyDate.prototype.toDateString = function () {
     return moment(this.date).format("DD.MM.YY");
 };
 
-MyDate.prototype.toWeekDayString = function() {
-    return WEEK_DAYS[this.date.getDay()];
+MyDate.prototype.toWeekDayString = function () {
+    return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][this.date.getDay()];
 };
 
 function updateFavouriteModel(projects) {

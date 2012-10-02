@@ -56,26 +56,25 @@
                        data-theme="b"/>
             </div>
 
-            <div class="ui-grid-a">
-                <div id="dayListButtonDiv" class="ui-block-a">
-                    <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
-                </div>
-            </div>
+            <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
         </form>
+
         <ul id="dayList" data-role="listview" data-inset="true" data-theme="b"></ul>
     </div>
     <!-- contentDay -->
 
     <!-- Mainpage footer -->
-    <div id="ftrDay" data-role="footer" data-position="fixed" data-id="navBarFooter">
+    <div data-role="footer" data-position="fixed" data-id="navBarFooter">
         <div data-role="navbar">
             <ul>
                 <li><a href="#dayPage" data-theme="a" data-icon="home" class="ui-btn-active ui-state-persist">Day</a>
-                <li><a href="#weekPage" class="weekLink" id="weekLink" data-theme="a" data-icon="grid"
-                       data-transition="slide">Week</a>
+                </li>
+                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
+                       data-transition="slide">Week</a></li>
                 <li><a href="#favPage" class="favLink" data-theme="a" data-icon="star" data-transition="slide">Fav</a>
+                </li>
                 <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                       data-transition="slide">Settings</a>
+                       data-transition="slide">Settings</a></li>
             </ul>
         </div>
     </div>
@@ -105,16 +104,18 @@
            data-theme="e">Submit period</a>
     </div>
 
-    <!-- weekPage footer -->
+    <!-- Mainpage footer -->
     <div data-role="footer" data-position="fixed" data-id="navBarFooter">
         <div data-role="navbar">
             <ul>
-                <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" data-transition="slide"
-                       data-direction="reverse">Day</a>
-                <li><a href="#weekPage" data-theme="a" data-icon="grid" class="ui-btn-active ui-state-persist">Week</a>
+                <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide" data-direction="reverse">Day</a>
+                </li>
+                <li><a href="#weekPage" data-theme="a" data-icon="grid"
+                       class="ui-btn-active ui-state-persist">Week</a></li>
                 <li><a href="#favPage" class="favLink" data-theme="a" data-icon="star" data-transition="slide">Fav</a>
-                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                       data-transition="slide">Settings</a>
+                </li>
+                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" data-transition="slide">Settings</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -145,17 +146,18 @@
             data-split-theme="d"></ul>
     </div>
 
-    <!-- Favpage footer -->
+    <!-- Mainpage footer -->
     <div data-role="footer" data-position="fixed" data-id="navBarFooter">
         <div data-role="navbar">
             <ul>
-                <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" data-transition="slide"
-                       data-direction="reverse">Day</a>
-                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" data-transition="slide"
-                       data-direction="reverse">Week</a>
+                <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide" data-direction="reverse">Day</a>
+                </li>
+                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
+                       data-transition="slide" data-direction="reverse">Week</a></li>
                 <li><a href="#favPage" data-theme="a" data-icon="star" class="ui-btn-active ui-state-persist">Fav</a>
-                <li><a href="#settingsPage" class="settingsLink" data-theme="a" data-icon="gear"
-                       data-transition="slide">Settings</a>
+                </li>
+                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
+                       data-transition="slide">Settings</a></li>
             </ul>
         </div>
     </div>
@@ -306,12 +308,13 @@
         <form id="editForm">
             <div id="descDiv" data-role="fieldcontain">
                 <label id="descEditLabel">Description:</label>
+
                 <p></p>
             </div>
 
             <div data-role="fieldcontain">
                 <label id="hoursEditLabel" for="editHours">Hours worked:</label>
-                <input type="range" name="editHours" id="editHours" value="" min="0" max="16" step="0.5"
+                <input type="range" name="editHours" id="editHours" value="0" min="0" max="16" step="0.5"
                        data-highlight="true"/>
             </div>
 

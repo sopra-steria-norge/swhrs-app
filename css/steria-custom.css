@@ -2,6 +2,14 @@
     padding-bottom: 0.5em;
 }
 
+div.ui-slider {
+    width: 90%;
+}
+
+fieldset {
+    width: auto;
+}
+
 label {
     margin-top: 0.5em;
 }
