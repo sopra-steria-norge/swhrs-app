@@ -34,6 +34,23 @@ $(document).on('ready', function () {
     }
 
     function registerDayPageEventHandlers() {
+        function deleteRegistration(taskNr) {
+            var delreg = {
+                taskNumber:taskNr
+            };
+
+            var onSuccess = function (data) {
+                if (data.indexOf('Already submitted') !== -1) {
+                    $.mobile.changePage("#dialogPopUpNoDelete");
+                } else {
+                    delete weekMap[currentDate.toString()][taskNr];
+                    dayPageDomElement.trigger("modelChanged");
+                }
+            };
+
+            authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
+        }
+
         $('#prevDayBtn').click(function () {
             currentDate.setDate(currentDate, -1);
             if (currentDate.date < periodStartDate.date) {
@@ -52,29 +69,36 @@ $(document).on('ready', function () {
             }
         });
 
-        $('#dayForm').submit(function () {
+        function removeAddEntryValidationFeedback() {
+            $('#favLabel').removeClass(MISSING);
+            $('#hoursLabel').removeClass(MISSING);
+        }
+
+        $("#dayForm").find("input,select").on("change", removeAddEntryValidationFeedback);
+
+
+        $('#dayForm').submit(function (event) {
             var err = false;
             // Reset highlighted form elements
-//            $('#favLabel').removeClass(MISSING);
-//            $('#hoursLabel').removeClass(MISSING);
-            $.mobile.silentScroll(100);
+            removeAddEntryValidationFeedback();
             hourForm = $("#hours").val();
-//
-//            if ($('#fav').val() === NO_FAV) {
-//                $('#favLabel').addClass(MISSING);
-//                err = true;
-//            }
-//            if (hourForm === ZERO) {
-//                $('#hoursLabel').addClass(MISSING);
-//                err = true;
-//            }
 
+            if ($('#fav').val() === "Select project") {
+                $('#favLabel').addClass(MISSING);
+                err = true;
+            }
+            if (hourForm === "0") {
+                $('#hoursLabel').addClass(MISSING);
+                err = true;
+            }
 
             // Validation error of input fields
             if (err === true) {
+                event.preventDefault();
                 return false;
             }
 
+            $.mobile.silentScroll(200);
             var dateForm = $('#hdrDay').children('h1').text();
             var favForm = $("#fav").val();
             var hourForm = $("#hours").val();
@@ -122,6 +146,11 @@ $(document).on('ready', function () {
             authenticatedAjax("POST", "hours/updateRegistration", edit, function () {
                 syncDataOnDayPage();
             });
+        });
+
+        $(dayPageDomElement).find("#dayList").on("click", ".deleteEntry", function () {
+            var taskNumber = $(this).attr("id");
+            deleteRegistration(taskNumber);
         });
     }
 
@@ -213,12 +242,14 @@ $(document).on('ready', function () {
         }
     });
 
-    dayPageDomElement.on('pagebeforeshow',function () {
-        try {
-            fillDayView();
-            fillSelectMenuInDayView();
-        } catch (error) {
-            syncDataOnDayPage();
+    dayPageDomElement.on('pagebeforeshow', function (event) {
+        if (event.target.id !== "dayPage") {
+            try {
+                fillDayView();
+                fillSelectMenuInDayView();
+            } catch (error) {
+                syncDataOnDayPage();
+            }
         }
     });
 
@@ -253,7 +284,7 @@ function authenticatedAjax(type, url, data, success, error) {
         url:serverUrl + url,
         cache:false,
         data:data,
-        dataType:'json',
+//        dataType:'json',
         headers:{
             "X-Authentication-Token":JSON.stringify(getLoginToken())
         },
@@ -309,30 +340,6 @@ function postHourRegistration(myData) {
     }, function (jqXHR, statusText) {
         alert(statusText);
     });
-}
-
-/*
- * deleteRegistration()
- * sends an hourRegistration to the servlet to be deleted in the database
- */
-function deleteRegistration(taskNr, listid) {
-    var delreg = {
-        taskNumber:taskNr
-    };
-
-    var onSuccess = function onSuccess() {
-        return function (data) {
-            if (data.indexOf('Already submitted') !== -1) {
-                $.mobile.changePage("#dialogPopUpNoDelete");
-            } else {
-                $('#reg' + taskNr).remove();
-                syncData($("#dayPage"))();
-            }
-        };
-    };
-
-    authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
-    return true;
 }
 
 /**

@@ -1,4 +1,20 @@
-.ui-content {
+#addEntryDiv {
+    border: 0;
+}
+
+.deleteEntry {
+    border: 0;
+    border-left: inherit;
+}
+
+#addEntry {
+    height: 12px;
+    border: 0;
+    margin: 0;
+    box-shadow: inset 0 12px 12px -12px rgba(0, 0, 0, 0.5);
+}
+
+.ui-body-a {
     background: url("images/light_toast.png") repeat;
 }
 
@@ -6,16 +22,30 @@
     padding-bottom: 0.5em;
 }
 
-div.ui-slider {
-    width: 90%;
+#dayForm .missing {
+    color: red;
+    font-weight: bold;
 }
 
-fieldset {
-    width: auto;
+.ui-field-contain div.ui-select {
+    width: 70%;
+    min-width: 20em;
+    display: inline-block;
+}
+
+.ui-field-contain div.ui-slider {
+    width: 60%;
+    min-width: 14.3em;
+    display: inline-block;
+}
+
+.ui-field-contain div.ui-slider:after {
+    clear: both;
 }
 
 label {
     margin-top: 0.5em;
+    white-space: nowrap;
 }
 
 .ui-field-contain {
@@ -36,10 +66,21 @@ label {
     margin-top: 0.2em;
 }
 
-.split-button {
-    border-top: 0;
-}
-
 #editDesc {
     font-style: italic;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ui-select-menu {
+    height: 0;
+    overflow: auto;
+}
+
+#dayListStatus {
+    font-style: italic;
+    text-align: center;
 }

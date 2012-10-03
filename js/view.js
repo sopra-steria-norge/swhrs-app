@@ -32,25 +32,29 @@ function fillSearchListInFavPage() {
 function fillSelectMenuInDayView() {
     var favouritesSelectMenu = $("#fav");
 
-    favouritesSelectMenu.empty();
-    favouritesSelectMenu.append('<option value="NO_FAV" data-placeholder="true">Select a favourite</option>');
+    favouritesSelectMenu.find('.projectOption').remove();
     $.each(favMap, function (key, project) {
-        favouritesSelectMenu.append('<option value="' + key + '">' + project.description + '</option>');
+        favouritesSelectMenu.append('<option class="projectOption" value="' + key + '">' + project.description + '</option>');
     });
     favouritesSelectMenu.selectmenu('refresh');
 }
 
 function fillDayView() {
     var dayListDomElement = $('#dayList');
+    var dayListStatus = $("#dayListStatus");
     dayListDomElement.empty();
+    dayListStatus.empty();
     dayListDomElement.listview();
     $("#hours").slider("option", "value", 7.5);
 
     if (weekMap && currentDate.toString() in weekMap) {
         $("#dayPageTitle").text(currentDate.toWeekDayString() + ", " + currentDate.toDateString());
 
+        if ($.isEmptyObject(weekMap[currentDate.toString()])) {
+            dayListStatus.text("No time entries registered.");
+        }
         $.each(weekMap[currentDate.toString()], function (taskNumber, registration) {
-            var dataIcon = registration.approved ? " data-icon='check'" : "";
+            var dataIcon = registration.approved ? "check" : "";
 
             var entryText = "";
             if (registration.projectNumber + "_" + registration.activityCode in favMap) {
@@ -60,7 +64,14 @@ function fillDayView() {
                 entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + registration.description + "</p>";
             }
 
-            dayListDomElement.append($("<li data-theme='b' " + dataIcon + "></li>").html('<a href="#">' + entryText + '</a><span class="ui-li-count">' + registration.hours + ' hours' + '</span>'))
+            var listElement = $("<li data-theme='b'></li>");
+            listElement.append($('<a href="#" class="ellipsis">' + entryText + '</a><span class="ui-li-count">' + registration.hours + ' hours' + '</span>'));
+            if (!registration.approved) {
+                listElement.append($('<a href="#" class="deleteEntry" id="' + taskNumber + '">Delete entry</a>').attr("data-icon", "delete"));
+            } else {
+                listElement.attr("data-icon", "check");
+            }
+            dayListDomElement.append(listElement);
         });
         dayListDomElement.listview("refresh", true);
     } else {
@@ -88,7 +99,7 @@ function fillWeekView() {
         var dataIcon = daySubmitted ? "check" : "arrow-l";
 
         var myDate = new MyDate(date);
-        weekListDomElement.append($("<li id='day:"+ date.toString() +"' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'></li>").html('<a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + hoursPerDay[date] + ' hours' + '</span>'));
+        weekListDomElement.append($("<li id='day:" + date.toString() + "' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'></li>").html('<a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + hoursPerDay[date] + ' hours' + '</span>'));
     });
 
     weekListDomElement.listview("refresh", true);

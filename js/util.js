@@ -18,3 +18,25 @@ function defaultFunction(arg, defaultFunction) {
     return typeof arg === 'function' ? arg : (typeof defaultFunction === 'function' ? defaultFunction : (function () {
     }));
 }
+
+function platformSpecific(parameters) {
+    if (!parameters) {
+        return;
+    }
+    var ret;
+    var ua = navigator.userAgent;
+    var platform = {
+        ios:ua.match(/(iPhone|iPod|iPad)/),
+        android:ua.match(/Android/)
+    };
+    if (platform.android && parameters.hasOwnProperty("android")) {
+        ret = parameters.android();
+    } else if (platform.ios && parameters.hasOwnProperty("ios")) {
+        ret = parameters.ios();
+    } else if (parameters.hasOwnProperty("default")) {
+        ret = parameters.default();
+    }
+    if (ret) {
+        return ret;
+    }
+}

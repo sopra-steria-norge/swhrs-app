@@ -42,11 +42,13 @@
     </div>
 
     <!-- DayContent: Contains the form that shall be submitted, project, hours worked, lunch, submit and overtime button -->
-    <div data-role="content" id="contentDay">
+    <div class="ui-body ui-body-b" id="addEntryDiv">
         <form id="dayForm">
             <div id="favDiv" data-role="fieldcontain">
-                <label id="favLabel" for="fav">Choose project</label>
-                <select id="fav" name="fav_r" tabindex="2" data-theme="b" data-native-menu="false"></select>
+                <label id="favLabel" for="fav">Project</label>
+                <select id="fav" name="fav_r" data-theme="b" data-native-menu="false">
+                    <option selected data-placeholder="true">Select project</option>
+                </select>
             </div>
 
             <div data-role="fieldcontain">
@@ -58,7 +60,11 @@
 
             <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
         </form>
+    </div>
+    <hr id="addEntry"/>
 
+    <div data-role="content" id="contentDay">
+        <p id="dayListStatus"></p>
         <ul id="dayList" data-role="listview" data-inset="true" data-theme="b"></ul>
     </div>
     <!-- contentDay -->
@@ -71,8 +77,6 @@
                 </li>
                 <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
                        data-transition="slide">Week</a></li>
-                <li><a href="#favPage" class="favLink" data-theme="a" data-icon="star" data-transition="slide">Fav</a>
-                </li>
                 <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
                        data-transition="slide">Settings</a></li>
             </ul>
@@ -88,7 +92,6 @@
 <div data-role="page" data-theme="a" id="weekPage" data-needs-auth="true">
     <div data-role="header" id="hdrWeek" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <a href="#" id="prevWeekBtn" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Prev</a>
-
         <h1 id="weekPageTitle"></h1>
         <a href="#" id="nextWeekBtn" data-icon="arrow-r" data-iconpos="right" data-transition="slide">Next</a>
     </div>
@@ -112,8 +115,6 @@
                 </li>
                 <li><a href="#weekPage" data-theme="a" data-icon="grid"
                        class="ui-btn-active ui-state-persist">Week</a></li>
-                <li><a href="#favPage" class="favLink" data-theme="a" data-icon="star" data-transition="slide">Fav</a>
-                </li>
                 <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" data-transition="slide">Settings</a>
                 </li>
             </ul>
@@ -129,7 +130,12 @@
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="favPage" data-needs-auth="true">
     <div data-role="header" id="hdrFav" data-nobackbtn="false" data-theme="a" data-position="fixed">
-        <h1>Favorites</h1>
+        <script>
+        platformSpecific({ios:function () {
+            document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');
+        }});
+        </script>
+        <h1>Favourites</h1>
     </div>
 
     <!-- FavpageContent -->
@@ -154,8 +160,6 @@
                 </li>
                 <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
                        data-transition="slide" data-direction="reverse">Week</a></li>
-                <li><a href="#favPage" data-theme="a" data-icon="star" class="ui-btn-active ui-state-persist">Fav</a>
-                </li>
                 <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
                        data-transition="slide">Settings</a></li>
             </ul>
@@ -175,12 +179,13 @@
 
     <div data-role="content" id="contentSettings">
         <div id="lunchDiv" data-role="fieldcontain">
-            <label id="lunchLabel" for="lunch">Automatically add lunch</label>
+            <label for="lunch">Automatically add lunch</label>
             <select name="lunch_r" id="lunch" data-role="slider" data-theme="b">
                 <option value="0">No</option>
                 <option value="1" selected="selected">Yes</option>
             </select>
         </div>
+        <a href="#favPage" data-role="button" id="manageFavouritesBtn" data-transition="slide" data-theme="b">Edit project favourites</a>
         <a href="#" data-role="button" id="logoutBtn" data-transition="pop" data-theme="d">Logout</a>
     </div>
 
@@ -192,8 +197,6 @@
                        data-direction="reverse">Day</a>
                 <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" data-transition="slide"
                        data-direction="reverse">Week</a>
-                <li><a href="#favPage" class="favLink" data-theme="a" data-icon="star" data-transition="slide"
-                       data-direction="reverse">Fav</a>
                 <li><a href="#settingsPage" data-theme="a" data-icon="gear" class="ui-btn-active ui-state-persist">Settings</a>
             </ul>
         </div>
@@ -255,7 +258,7 @@
 
         <p></p>
         <fieldset class="ui-grid-a" data-type="horizontal">
-            <div class="ui-block-b"><a href="#favPage" id="okBtn" type="button" data-theme="a">OK</a></div>
+            <div class="ui-block-b"><a href="#favPage" id="okBtn" type="button" data-theme="c">OK</a></div>
             <div class="ui-block-b"><a href="#favPage" id="cancelBtn" type="button" data-theme="a">Cancel</a></div>
         </fieldset>
     </div>
