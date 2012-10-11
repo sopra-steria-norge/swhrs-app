@@ -2,6 +2,7 @@ currentDate = new MyDate();
 periodStartDate = new MyDate();
 periodEndDate = new MyDate();
 
+
 $(document).on("pagebeforechange", function (event, data) {
     if (typeof data.toPage === 'object' && data.toPage.attr('data-needs-auth') === 'true') {
         if (!getLoginToken()) {
@@ -12,13 +13,33 @@ $(document).on("pagebeforechange", function (event, data) {
     }
 });
 
+function checkAuthentication(loginToken, onError) {
+    $.mobile.showPageLoadingMsg();
+    $.ajax({
+        type:'HEAD',
+        url:serverUrl + 'checkAuthentication',
+        headers:{
+            "X-Authentication-Token":JSON.stringify(loginToken)
+        },
+        success:function () {
+            localStorage.setItem(LOGIN_TOKEN, JSON.stringify(loginToken));
+            if (returnToPage) {
+                $.mobile.changePage(returnToPage);
+            } else {
+                $.mobile.changePage("#weekPage");
+            }
+        },
+        error:defaultFunction(onError),
+        complete: $.mobile.hidePageLoadingMsg
+    });
+}
 $(document).on('ready', function () {
     var dayPageDomElement = $("#dayPage");
     var weekPageDomElement = $("#weekPage");
     var syncDataOnWeekPage = syncData(weekPageDomElement);
     var syncDataOnDayPage = syncData(dayPageDomElement);
 
-    function registerModelViewBinding() {
+    function addModelViewBinding() {
         dayPageDomElement.on('modelChanged', function () {
             fillDayView();
             fillSelectMenuInDayView();
@@ -28,13 +49,13 @@ $(document).on('ready', function () {
             fillWeekView();
         });
 
-        $("#favPage").on('dataSyncronized', function () {
+        $("#favPage").on('modelChanged', function () {
             fillCurrentListInFavPage();
         });
     }
 
-    function registerDayPageEventHandlers() {
-        function deleteRegistration(taskNr) {
+    function addDayPageEventHandlers() {
+        function deleteRegistrationHandler(taskNr) {
             var delreg = {
                 taskNumber:taskNr
             };
@@ -43,7 +64,7 @@ $(document).on('ready', function () {
                 if (data.indexOf('Already submitted') !== -1) {
                     $.mobile.changePage("#dialogPopUpNoDelete");
                 } else {
-                    delete weekMap[currentDate.toString()][taskNr];
+                    deleteRegistration(taskNr);
                     dayPageDomElement.trigger("modelChanged");
                 }
             };
@@ -51,7 +72,13 @@ $(document).on('ready', function () {
             authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
         }
 
-        $('#prevDayBtn').click(function () {
+        function postHourRegistration(myData) {
+            authenticatedAjax('POST', 'hours/registration', myData, function () {
+                syncDataOnDayPage();
+            });
+        }
+
+        $('#prevDayBtn').on("click", function () {
             currentDate.setDate(currentDate, -1);
             if (currentDate.date < periodStartDate.date) {
                 syncDataOnDayPage();
@@ -60,7 +87,7 @@ $(document).on('ready', function () {
             }
         });
 
-        $('#nextDayBtn').click(function () {
+        $('#nextDayBtn').on("click", function () {
             currentDate.setDate(currentDate, 1);
             if (currentDate.date > periodEndDate.date) {
                 syncDataOnDayPage();
@@ -69,21 +96,33 @@ $(document).on('ready', function () {
             }
         });
 
-        function removeAddEntryValidationFeedback() {
+        function removeValidationHighlighting() {
             $('#favLabel').removeClass(MISSING);
             $('#hoursLabel').removeClass(MISSING);
         }
 
-        $("#dayForm").find("input,select").on("change", removeAddEntryValidationFeedback);
+        dayPageDomElement.on('pagebeforeshow', function (event) {
+            removeValidationHighlighting();
+            if (event.target.id !== "dayPage") {
+                try {
+                    fillDayView();
+                    fillSelectMenuInDayView();
+                } catch (error) {
+                    syncDataOnDayPage();
+                }
+            }
+        });
+
+        $("#dayForm").find("input,select").on("change", removeValidationHighlighting);
 
 
         $('#dayForm').submit(function (event) {
+            event.preventDefault();
             var err = false;
-            // Reset highlighted form elements
-            removeAddEntryValidationFeedback();
+            removeValidationHighlighting();
             hourForm = $("#hours").val();
 
-            if ($('#fav').val() === "Select project") {
+            if ($('#fav').val() === "") {
                 $('#favLabel').addClass(MISSING);
                 err = true;
             }
@@ -94,27 +133,33 @@ $(document).on('ready', function () {
 
             // Validation error of input fields
             if (err === true) {
-                event.preventDefault();
+                window.setTimeout(removeValidationHighlighting, 2000);
                 return false;
             }
 
             $.mobile.silentScroll(200);
-            var dateForm = $('#hdrDay').children('h1').text();
             var favForm = $("#fav").val();
             var hourForm = $("#hours").val();
             var lunchForm = $("#lunch").val();
             var selectedFav = favMap[favForm]; //The Favourite object selected in the select box
 
-            var myData = {
+            if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.toString()])) {
+                postHourRegistration({
+                    'projectNumber':'LUNSJ',
+                    'activityCode':'LU',
+                    'description':'Lunsj',
+                    'hours':0.5,
+                    'date':currentDate.toString()
+                });
+            }
+
+            postHourRegistration({
                 'projectNumber':selectedFav.projectNumber,
                 'activityCode':selectedFav.activityCode,
-                'workType':'',
                 'description':selectedFav.description,
                 'hours':hourForm,
                 'date':currentDate.toString()
-            };
-
-            postHourRegistration(myData);
+            });
             return false;
         });
 
@@ -127,11 +172,12 @@ $(document).on('ready', function () {
         $('#editReg').on('click', function () {
             var err = false;
 
-            var hourEditDomElement = $('#hoursEditLabel');
             // Reset highlighted form elements
-            hourEditDomElement.removeClass(MISSING);
+            $('#hoursEditLabel').removeClass(MISSING);
 
             var editHours = $('#editHours').val();
+            var editDescription = $('#editDescription').val();
+            var editWorkType = $('#editWorkType').val();
 
             // Validation error of input fields
             if (err === true) {
@@ -140,6 +186,11 @@ $(document).on('ready', function () {
 
             var edit = {
                 'taskNumber':editTaskNumber,
+                'projectNumber':weekMap[currentDate.toString()][editTaskNumber].projectNumber,
+                'activityCode':weekMap[currentDate.toString()][editTaskNumber].activityCode,
+                'date':currentDate.toString(),
+                'workType':editWorkType,
+                'description':editDescription,
                 'hours':editHours
             };
 
@@ -148,20 +199,25 @@ $(document).on('ready', function () {
             });
         });
 
-        $(dayPageDomElement).find("#dayList").on("click", ".deleteEntry", function () {
-            var taskNumber = $(this).attr("id");
-            deleteRegistration(taskNumber);
+        dayPageDomElement.find("#dayList").on("click", ".editEntry", function () {
+            editTaskNumber = $(this).attr("id").substring("edit:".length);
+            $.mobile.changePage("#dialogEditReg");
+        });
+
+        dayPageDomElement.find("#dayList").on("click", ".deleteEntry", function () {
+            var taskNumber = $(this).attr("id").substring("delete:".length);
+            deleteRegistrationHandler(taskNumber);
         });
     }
 
-    function registerWeekPageEventHandlers() {
-        $('#prevWeekBtn').click(function () {
+    function addWeekPageEventHandlers() {
+        $('#prevWeekBtn').on("click", function () {
             currentDate.setDate(periodStartDate, -1);
             syncDataOnWeekPage();
         });
 
-        $('#nextWeekBtn').click(function () {
-            currentDate.setDate(periodStartDate, 1);
+        $('#nextWeekBtn').on("click", function () {
+            currentDate.setDate(periodEndDate, 1);
             syncDataOnWeekPage();
         });
 
@@ -174,11 +230,23 @@ $(document).on('ready', function () {
             var date = $(this).attr("id").substring(4);
             currentDate.setDateFromString(date);
             $.mobile.changePage("#dayPage");
+            dayPageDomElement.trigger("modelChanged");
         });
 
+        $("#submitPeriod").on("click", function () {
+            authenticatedAjax("POST", "hours/submitPeriod", {date:periodStartDate.toString()}, function () {
+                syncDataOnWeekPage();
+            });
+        });
+
+        $("#reopenPeriod").on("click", function () {
+            authenticatedAjax("POST", "hours/reopenPeriod", {date:periodStartDate.toString()}, function () {
+                syncDataOnWeekPage();
+            });
+        });
     }
 
-    function registerFavPageEventHandlers() {
+    function addFavPageEventHandlers() {
         /*
          * Listens to a click of "Search Projects" in the Fav page
          * Gets search data from the server and displays results in a a list.
@@ -193,63 +261,44 @@ $(document).on('ready', function () {
         });
     }
 
-    function registerLoginPageEventHandlers() {
-        $('#loginForm').submit(function () {
-            var loginToken = {
-                username:$('[name=username]').val(),
-                password:saltAndHash($('[name=password]').val())
-            };
-
-            $.ajax({
-                type:'HEAD',
-                url:serverUrl + 'checkAuthentication',
-                headers:{
-                    "X-Authentication-Token":JSON.stringify(loginToken)
-                },
-                success:function () {
-                    localStorage.setItem(LOGIN_TOKEN, JSON.stringify(loginToken));
-                    if (returnToPage) {
-                        $.mobile.changePage(returnToPage);
-                    } else {
-                        $.mobile.changePage("#weekPage");
-                    }
-                },
-                error:function () {
-                    $('#loginErr').text("Wrong username/password");
-                }
-            });
-            return false;
+    function addConnectionLostEventHandler() {
+        $("#connectionLostLink").on("click", function () {
+            returnToPage = location.hash;
+            checkAuthentication(getLoginToken());
         });
     }
 
-    function registerSettingPageEventHandlers() {
-        $("#logoutBtn").click(function () {
+    function addLoginPageEventHandlers() {
+        $('#loginForm').submit(function () {
+            var pw = $('[name=password]').val();
+            var loginToken = {
+                username:$('[name=username]').val(),
+                password:saltAndHash(pw)
+            };
+            checkAuthentication(loginToken, function () {
+                $('#loginErr').text("Wrong username/password");
+            });
+        });
+    }
+
+    function addSettingPageEventHandlers() {
+        $("#logoutBtn").on("click", function () {
             removeLoginToken();
             redirectToLogin();
         });
     }
 
-    registerModelViewBinding();
-    registerDayPageEventHandlers();
-    registerWeekPageEventHandlers();
-//    registerLoginPageEventHandlers();
-//    registerFavPageEventHandlers();
-//    registerSettingPageEventHandlers();
+    addModelViewBinding();
+    addDayPageEventHandlers();
+    addWeekPageEventHandlers();
+    addConnectionLostEventHandler();
+    addLoginPageEventHandlers();
+//    addFavPageEventHandlers();
+    addSettingPageEventHandlers();
 
     $(document).on("modelChanged", function () {
-        if (currentDate.date > periodEndDate.date || currentDate.date < periodStartDate.date || periodEndDate.date < periodStartDate.date) {
+        if (currentDate.toString() > periodEndDate.toString() || currentDate.toString() < periodStartDate.toString() || periodEndDate.toString() < periodStartDate.toString()) {
             throw new Error("Inconsistent periods");
-        }
-    });
-
-    dayPageDomElement.on('pagebeforeshow', function (event) {
-        if (event.target.id !== "dayPage") {
-            try {
-                fillDayView();
-                fillSelectMenuInDayView();
-            } catch (error) {
-                syncDataOnDayPage();
-            }
         }
     });
 
@@ -257,9 +306,12 @@ $(document).on('ready', function () {
         fillWeekView();
     });
 
+    $("#dialogEditReg").on("pagebeforeshow", fillEditRegistrationView);
+
 //    $('#favPage').on('pagebeforeshow', function () { });
 
 //    $('#settingsPage').on('pagebeforeshow', function () { });
+
     syncDataOnDayPage();
 })
 ;
@@ -278,13 +330,14 @@ function removeLoginToken() {
     localStorage.removeItem(LOGIN_TOKEN);
 }
 
-function authenticatedAjax(type, url, data, success, error) {
+function authenticatedAjax(type, url, data, success) {
+    $.mobile.showPageLoadingMsg();
     $.ajax({
         type:type,
         url:serverUrl + url,
         cache:false,
+//        timeout:10000,
         data:data,
-//        dataType:'json',
         headers:{
             "X-Authentication-Token":JSON.stringify(getLoginToken())
         },
@@ -292,7 +345,29 @@ function authenticatedAjax(type, url, data, success, error) {
         statusCode:{
             403:redirectToLogin
         },
-        error:defaultFunction(error)
+        error:function (jqXHR, textStatus) {
+            var message = "There was an error with the AJAX request.\n";
+            switch (textStatus) {
+                case 'timeout':
+                    message += "The request timed out.";
+                    break;
+                case 'notmodified':
+                    message += "The request was not modified but was not retrieved from the cache.";
+                    break;
+                case 'parsererror':
+                    message += "XML/Json format is bad.";
+                    break;
+                default:
+                    message += "HTTP Error (" + jqXHR.status + " " + jqXHR.statusText + ").";
+            }
+
+            $.mobile.hidePageLoadingMsg();
+            alert(message);
+            $.mobile.changePage("#connectionLostPage", {changeHash:false});
+        },
+        complete:function () {
+            $.mobile.hidePageLoadingMsg();
+        }
     });
 }
 
@@ -308,53 +383,9 @@ function syncData(observingDomElement) {
             observingDomElement.trigger("modelChanged");
         };
 
-        var onError = function (jqXHR, textStatus) {
-            var message = "There was an error with the AJAX request.\n";
-            switch (textStatus) {
-                case 'timeout':
-                    message += "The request timed out.";
-                    break;
-                case 'notmodified':
-                    message += "The request was not modified but was not retrieved from the cache.";
-                    break;
-                case 'parsererror':
-                    message += "XML/Json format is bad.";
-                    break;
-                default:
-                    message += "HTTP Error (" + jqXHR.status + " " + jqXHR.statusText + ").";
-            }
-            message += "\n";
-            console.log(message);
-        };
-        authenticatedAjax("GET", "hours/week", {date:currentDate.toString()}, onSuccess, onError);
+        authenticatedAjax("GET", "hours/week", {date:currentDate.toString()}, onSuccess);
     }
 }
-
-/*
- * postHourRegistration(mydata)
- * Sends hourRegistration data to the servlet
- */
-function postHourRegistration(myData) {
-    authenticatedAjax('POST', 'hours/registration', myData, function () {
-        syncData($("#dayPage"))();
-    }, function (jqXHR, statusText) {
-        alert(statusText);
-    });
-}
-
-/**
- * This method is called when the user clicks a list element in the dayList which can
- * @param tasknumber The tasknumber of the time entry in the database
- */
-function editRegistration(tasknumber) {
-    editTaskNumber = tasknumber;
-    $.mobile.changePage($("#dialogEditReg"));
-    $('#editDesc').text(regMap[tasknumber].description);
-    $('#editHours').val(regMap[tasknumber].hours);
-    $('#editHours').slider('refresh');
-    return false;
-}
-
 
 function addFavourites(pNr, aC) {
     var data = {

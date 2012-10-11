@@ -1,26 +1,20 @@
 "use strict";
 
 var returnToPage,
-    favMap,
     regMap,
-    weekMap,
-    weekDateList,
-    totalHours,
-    editTaskNumber,
-    MISSING,
     currentDate,
     periodStartDate,
     periodEndDate,
-    LOGIN_TOKEN,
-    DATE_FORMAT,
-    serverUrl;
+    periodApproved,
+    periodSubmitted;
 
-DATE_FORMAT = "YYYY-MM-DD";
-favMap = {};
-weekMap = {}
-weekDateList = [];
-regMap = {};
-editTaskNumber = null;
-MISSING = "missing";
-LOGIN_TOKEN = "loginToken";
-serverUrl = "http://localhost:8081/swhrs-app/";
+var DATE_FORMAT = "YYYY-MM-DD";
+var favMap = {};
+var weekMap = {};
+var weekStatusMap = {};
+var regMap = {};
+var editTaskNumber = null;
+var MISSING = "missing";
+var LOGIN_TOKEN = "loginToken";
+// var serverUrl = "http://192.168.119.1:8081/swhrs-app/";
+var serverUrl = "";

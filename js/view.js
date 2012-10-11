@@ -30,87 +30,110 @@ function fillSearchListInFavPage() {
 }
 
 function fillSelectMenuInDayView() {
-    var favouritesSelectMenu = $("#fav");
+    var projects = "";
 
-    favouritesSelectMenu.find('.projectOption').remove();
     $.each(favMap, function (key, project) {
-        favouritesSelectMenu.append('<option class="projectOption" value="' + key + '">' + project.description + '</option>');
+        projects += '<option class="projectOption" value="' + key + '">' + project.description + '</option>';
     });
-    favouritesSelectMenu.selectmenu('refresh');
+
+    $("#fav").html(projects).selectmenu('refresh');
 }
 
 function fillDayView() {
-    var dayListDomElement = $('#dayList');
-    var dayListStatus = $("#dayListStatus");
-    dayListDomElement.empty();
-    dayListStatus.empty();
-    dayListDomElement.listview();
+    $("#dayListStatus").empty();
+    $("#dayList").empty();
     $("#hours").slider("option", "value", 7.5);
+
+    if (weekStatusMap.approved || weekStatusMap.submitted) {
+        $("#dayForm").hide();
+    } else {
+        $("#dayForm").show();
+    }
 
     if (weekMap && currentDate.toString() in weekMap) {
         $("#dayPageTitle").text(currentDate.toWeekDayString() + ", " + currentDate.toDateString());
 
         if ($.isEmptyObject(weekMap[currentDate.toString()])) {
-            dayListStatus.text("No time entries registered.");
+            $("#dayListStatus").text("No time entries registered.");
+        } else {
+            var dayListContent = "";
+            $.each(weekMap[currentDate.toString()], function (taskNumber, registration) {
+                if (registration.projectNumber + "_" + registration.activityCode in favMap) {
+                    var project = favMap[registration.projectNumber + "_" + registration.activityCode];
+                    var entryText = project.description + "<p>" + project.projectName + " (" + project.projectNumber + ")";
+                    if (registration.workType) {
+                        entryText += "<br/><strong>" + registration.workType + "</strong>";
+                    }
+                    entryText += "</p>";
+                } else {
+                    var entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + registration.description + "</p>";
+                }
+
+                if (!weekStatusMap.submitted && !weekStatusMap.approved) {
+                    dayListContent += '<li data-icon="delete" data-theme="b">';
+                    dayListContent += ' <a href="#" class="editEntry" id="edit:' + taskNumber + '">' + entryText + '</a><span class="ui-li-count">' + registration.hours + 'h</span>';
+                    dayListContent += ' <a href="#" class="deleteEntry" id="delete:' + taskNumber + '">Delete entry</a>';
+                } else {
+                    dayListContent += '<li data-icon="check" data-theme="f">';
+                    dayListContent += entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
+                }
+                dayListContent += '</li>';
+            });
+
+            $("#dayList").html(dayListContent).listview("refresh", true);
         }
-        $.each(weekMap[currentDate.toString()], function (taskNumber, registration) {
-            var dataIcon = registration.approved ? "check" : "";
-
-            var entryText = "";
-            if (registration.projectNumber + "_" + registration.activityCode in favMap) {
-                var project = favMap[registration.projectNumber + "_" + registration.activityCode];
-                entryText = project.description + "<p>" + project.projectName + " (" + project.projectNumber + "), " + project.customerName + "</p>";
-            } else {
-                entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + registration.description + "</p>";
-            }
-
-            var listElement = $("<li data-theme='b'></li>");
-            listElement.append($('<a href="#" class="ellipsis">' + entryText + '</a><span class="ui-li-count">' + registration.hours + ' hours' + '</span>'));
-            if (!registration.approved) {
-                listElement.append($('<a href="#" class="deleteEntry" id="' + taskNumber + '">Delete entry</a>').attr("data-icon", "delete"));
-            } else {
-                listElement.attr("data-icon", "check");
-            }
-            dayListDomElement.append(listElement);
-        });
-        dayListDomElement.listview("refresh", true);
     } else {
         throw new Error("Data not synchronized");
     }
 }
 
+function fillEditRegistrationView() {
+    try {
+        $('#editDescription').val(weekMap[currentDate.toString()][editTaskNumber].description);
+        $('#editHours').val(weekMap[currentDate.toString()][editTaskNumber].hours);
+        $('#editWorkType').val(weekMap[currentDate.toString()][editTaskNumber].workType);
+        $('#editHours').slider('refresh');
+    } catch (error) {
+
+    }
+}
+
 function fillWeekView() {
-    var weekListDomElement = $('#weekList');
-    weekListDomElement.empty();
-    weekListDomElement.listview();
+    var listContent = "";
 
-    var hoursPerDay = {};
-    var periodSubmitted = false;
-    $.each(weekDateList, function (i, date) {
-        var registrations = weekMap[date];
-        var daySubmitted = false;
-        var dayApproved = false;
-        hoursPerDay[date] = 0;
-        $.each(registrations, function (j, registration) {
-            hoursPerDay[date] += registration.hours;
-            daySubmitted |= registration.submitted;
-            dayApproved |= registration.approved;
-        });
-        var dataIcon = daySubmitted ? "check" : "arrow-l";
+    if (weekStatusMap.approved) {
+        var dataIcon = "check";
+    } else if (weekStatusMap.submitted) {
+        var dataIcon = "check";
+    } else {
+        var dataIcon = "back";
+    }
 
+    var datesInPeriod = Object.keys(weekStatusMap.hoursPerDay).sort();
+
+    for (var i = 0; i < datesInPeriod.length; i++) {
+        var date = datesInPeriod[i];
         var myDate = new MyDate(date);
-        weekListDomElement.append($("<li id='day:" + date.toString() + "' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'></li>").html('<a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + hoursPerDay[date] + ' hours' + '</span>'));
-    });
 
-    weekListDomElement.listview("refresh", true);
+        listContent += "<li id='day:" + date.toString() + "' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'>";
+        listContent += '    <a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + weekStatusMap.hoursPerDay[date] + ' hours' + '</span>';
+        listContent += "</li>";
+    }
 
-    var totalWeek = 0;
-    $.each(hoursPerDay, function (i, hoursInDay) {
-        totalWeek += parseFloat(hoursInDay);
-    });
+    $('#weekDescription').empty();
+    if (!weekStatusMap.submitted) {
+        $("#weekButtonDiv").html('<a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop" data-theme="e">Submit period</a>').trigger("create");
+    } else if (weekStatusMap.submitted && !weekStatusMap.approved) {
+        $('#weekDescription').append("<p class='submitted'>Period submitted.</p>");
+        $("#weekButtonDiv").html('<a href="#dialogReopen" data-role="button" id="reopenPopup" data-rel="dialog" data-transition="pop" data-theme="a">Reopen period</a>').trigger("create");
+    } else if (weekStatusMap.approved) {
+        $('#weekDescription').append("<p class='approved'>Period submitted and approved.</p>");
+    }
+    $('#weekDescription').append("<p>You have logged " + weekStatusMap.totalHours + " hours this period.</p>");
+
+
+    $("#weekList").html(listContent).listview("refresh", true);
 
     $('#weekPageTitle').text(periodStartDate.toDateString() + " - " + periodEndDate.toDateString());
-    $('#weekDescription').children('p').text("You have logged " + totalWeek + " hours this week");
-    $('#hdrDia').children('h1').text("Do you want to Submit?");
-    $('#contentDia').children('p').text("You have registered " + totalWeek + " hours in period. ");
+    $('#contentDia').children('p').text("You have logged " + weekStatusMap.totalHours + " hours in the period: " + periodStartDate.toDateString() + " - " + periodEndDate.toDateString());
 }

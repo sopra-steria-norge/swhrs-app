@@ -1,29 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, user-scalable=0"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
 
     <title>Steriatime</title>
 
-    <link rel="stylesheet" type="text/css" href="css/jquery.mobile.min.css"/>
-    <link rel="stylesheet" type="text/css" href="css/jqm-datebox.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.2.0.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.mobile.structure-1.2.0.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.mobile.theme-1.2.0.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/steria.css"/>
     <link rel="stylesheet" type="text/css" href="css/steria-custom.css"/>
 
-    <link rel="shortcut icon" href="about:blank">
+    <link rel="shortcut icon" href="about:blank"/>
 
-    <script type="text/javascript" src="js/lib/jquery.js"></script>
-    <script type="text/javascript" src="js/lib/jquery.mobile.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/lib/core.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/lib/sha1.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/lib/enc-base64.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/lib/moment.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/util.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/global-variables.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/model.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/view.js"></script>
-    <script type="text/javascript" charset="utf-8" src="js/controller.js"></script>
 </head>
 
 <body>
@@ -33,7 +24,7 @@
 <!-- dayPage: Showing the dayView where you can log hours -->
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="dayPage" data-needs-auth="true">
-    <div data-role="header" id="hdrDay" data-nobackbtn="false" data-theme="a" data-position="fixed">
+    <div data-role="header" id="hdrDay" data-nobackbtn="false" data-theme="a">
         <a href="#" id="prevDayBtn" data-icon="arrow-l">Prev</a>
 
         <h1 id="dayPageTitle"></h1>
@@ -42,44 +33,43 @@
     </div>
 
     <!-- DayContent: Contains the form that shall be submitted, project, hours worked, lunch, submit and overtime button -->
-    <div class="ui-body ui-body-b" id="addEntryDiv">
+    <div data-role="content" id="contentDay" class="scrollable" data-role="content" data-iscroll>
         <form id="dayForm">
             <div id="favDiv" data-role="fieldcontain">
                 <label id="favLabel" for="fav">Project</label>
-                <select id="fav" name="fav_r" data-theme="b" data-native-menu="false">
-                    <option selected data-placeholder="true">Select project</option>
+                <select id="fav" name="fav_r" data-theme="b" data-native-menu="true">
                 </select>
             </div>
 
             <div data-role="fieldcontain">
                 <label id="hoursLabel" for="hours">Hours worked</label>
-                <input type="range" name="hours" id="hours" value="7.5" min="0" max="16" step="0.25"
+                <input type="range" name="hours" id="hours" value="7.5" min="0" max="12" step="0.5"
                        data-highlight="true"
                        data-theme="b"/>
             </div>
 
             <button id="saveBtnID" name="saveButton" type="submit" data-theme="a">Add</button>
         </form>
-    </div>
-    <hr id="addEntry"/>
 
-    <div data-role="content" id="contentDay">
         <p id="dayListStatus"></p>
         <ul id="dayList" data-role="listview" data-inset="true" data-theme="b"></ul>
     </div>
     <!-- contentDay -->
 
     <!-- Mainpage footer -->
-    <div data-role="footer" data-position="fixed" data-id="navBarFooter">
-        <div data-role="navbar">
-            <ul>
-                <li><a href="#dayPage" data-theme="a" data-icon="home" class="ui-btn-active ui-state-persist">Day</a>
-                </li>
-                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
-                       data-transition="slide">Week</a></li>
-                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                       data-transition="slide">Settings</a></li>
-            </ul>
+    <div class="navBarFooter">
+        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#dayPage" data-theme="a" data-icon="home"
+                           class="ui-btn-active ui-state-persist">Day</a>
+                    </li>
+                    <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
+                           data-transition="slide">Week</a></li>
+                    <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
+                           data-transition="slide">Settings</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -91,36 +81,37 @@
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="weekPage" data-needs-auth="true">
     <div data-role="header" id="hdrWeek" data-nobackbtn="false" data-theme="a" data-position="fixed">
-        <a href="#" id="prevWeekBtn" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Prev</a>
+        <a href="#" id="prevWeekBtn" data-icon="arrow-l" data-direction="" data-transition="slide">Prev</a>
+
         <h1 id="weekPageTitle"></h1>
         <a href="#" id="nextWeekBtn" data-icon="arrow-r" data-iconpos="right" data-transition="slide">Next</a>
     </div>
 
     <!-- WeekpageContent: List of the weekdays and the current status -->
-    <div data-role="content" id="contentWeek">
-        <ul id="weekList" data-role="listview" data-inset="true">
-        </ul>
-        <div id="weekDescription" align="center">
-            <p></p>
+    <div data-role="content" id="contentWeek" class="scrollable" data-role="content" data-iscroll>
+        <div id="weekDescription">
         </div>
-        <a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop"
-           data-theme="e">Submit period</a>
+        <ul id="weekList" data-role="listview" data-inset="true"></ul>
+
+        <div id="weekButtonDiv"></div>
     </div>
 
     <!-- Mainpage footer -->
-    <div data-role="footer" data-position="fixed" data-id="navBarFooter">
-        <div data-role="navbar">
-            <ul>
-                <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide" data-direction="reverse">Day</a>
-                </li>
-                <li><a href="#weekPage" data-theme="a" data-icon="grid"
-                       class="ui-btn-active ui-state-persist">Week</a></li>
-                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" data-transition="slide">Settings</a>
-                </li>
-            </ul>
+    <div class="navBarFooter">
+        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide"
+                           data-direction="reverse">Day</a>
+                    </li>
+                    <li><a href="#weekPage" data-theme="a" data-icon="grid"
+                           class="ui-btn-active ui-state-persist">Week</a></li>
+                    <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" data-transition="slide">Settings</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-
 </div>
 <!-- weekPage end -->
 
@@ -131,9 +122,9 @@
 <div data-role="page" data-theme="a" id="favPage" data-needs-auth="true">
     <div data-role="header" id="hdrFav" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <script>
-        platformSpecific({ios:function () {
-            document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');
-        }});
+            platformSpecific({ios:function () {
+                document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');
+            }});
         </script>
         <h1>Favourites</h1>
     </div>
@@ -153,16 +144,19 @@
     </div>
 
     <!-- Mainpage footer -->
-    <div data-role="footer" data-position="fixed" data-id="navBarFooter">
-        <div data-role="navbar">
-            <ul>
-                <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide" data-direction="reverse">Day</a>
-                </li>
-                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
-                       data-transition="slide" data-direction="reverse">Week</a></li>
-                <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                       data-transition="slide">Settings</a></li>
-            </ul>
+    <div class="navBarFooter">
+        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide"
+                           data-direction="reverse">Day</a>
+                    </li>
+                    <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
+                           data-transition="slide" data-direction="reverse">Week</a></li>
+                    <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
+                           data-transition="slide" data-direction="reverse">Settings</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -185,20 +179,23 @@
                 <option value="1" selected="selected">Yes</option>
             </select>
         </div>
-        <a href="#favPage" data-role="button" id="manageFavouritesBtn" data-transition="slide" data-theme="b">Edit project favourites</a>
+        <a href="#favPage" data-role="button" id="manageFavouritesBtn" data-transition="slide" data-theme="b">Edit
+            project favourites</a>
         <a href="#" data-role="button" id="logoutBtn" data-transition="pop" data-theme="d">Logout</a>
     </div>
 
     <!-- Settingspage footer -->
-    <div data-role="footer" data-position="fixed" data-id="navBarFooter">
-        <div data-role="navbar">
-            <ul>
-                <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" data-transition="slide"
-                       data-direction="reverse">Day</a>
-                <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" data-transition="slide"
-                       data-direction="reverse">Week</a>
-                <li><a href="#settingsPage" data-theme="a" data-icon="gear" class="ui-btn-active ui-state-persist">Settings</a>
-            </ul>
+    <div class="navBarFooter">
+        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" data-transition="slide"
+                           data-direction="reverse">Day</a>
+                    <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" data-transition="slide"
+                           data-direction="reverse">Week</a>
+                    <li><a href="#settingsPage" data-theme="a" data-icon="gear" class="ui-btn-active ui-state-persist">Settings</a>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -230,22 +227,38 @@
     </div>
 </div>
 
+<!-- ********************************************************************************** -->
+<!-- Connection lost page -->
+<!-- ********************************************************************************** -->
+<div data-role="page" id="connectionLostPage" data-theme="a">
+    <div data-role="header" data-theme="a">
+        <h1>Steria Work Hours</h1>
+    </div>
+
+    <a id="connectionLostLink" href="">
+        <div data-role="content" id="connectionLostContent">
+            <img src="img/error.png"/>
+
+            <p class="connectionLost">Connection lost</p>
+
+            <p class="tapToRetry">Tap to reconnect</p>
+        </div>
+    </a>
+</div>
+
 
 <!-- ********************************************************************************** -->
 <!-- Dialog box: Dialogbox to confirm if you want to confirm your hours for the period -->
 <!-- ********************************************************************************** -->
 <div data-role="dialog" id="dialogPopUp">
-    <div id="hdrDia" data-role="header">
-        <h1></h1>
+    <div data-role="header">
+        <h1>Confirm</h1>
     </div>
 
     <div id="contentDia" data-role="content">
         <p></p>
-        <fieldset class="ui-grid-a" data-type="vertical">
-            <div class="ui-block-a"><a href="#weekPage" onclick="updatePeriod(); return false;" type="button"
-                                       data-theme="a" data-rel="back">OK</a></div>
-            <div class="ui-block-b"><a href="#weekPage" type="button" data-theme="a" data-rel="back">Cancel</a></div>
-        </fieldset>
+        <a href="#weekPage" type="button" data-theme="e" data-rel="back" id="submitPeriod">Submit</a>
+        <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
     </div>
 </div>
 
@@ -262,40 +275,20 @@
             <div class="ui-block-b"><a href="#favPage" id="cancelBtn" type="button" data-theme="a">Cancel</a></div>
         </fieldset>
     </div>
-
 </div>
 
 
 <!-- ***************************************************************************************************** -->
 <!-- Dialog box: Dialogbox with feedback that the registration is already submitted and can not be deleted -->
 <!-- ***************************************************************************************************** -->
-<div data-role="dialog" id="dialogPopUpNoDelete" data-transition="pop">
+<div data-role="dialog" id="dialogReopen" data-transition="pop">
     <div id="hdrDia3" data-role="header">
-        <h1>Can not delete</h1>
+        <h1>Confirm</h1>
     </div>
     <div data-role="content">
-        <h4>The period has been submitted. </h4>
-
-        <p>If you want to edit this registration you must reopen <br/> the period on the desktop version of the website.
-        </p>
-        <a href="#dayPage" type="button" data-theme="a" data-rel="back">Ok</a>
-    </div>
-
-</div>
-
-<!-- ************************************************************************************************************************* -->
-<!-- Dialog box: Dialogbox that will pop up if a user tries to register a project that has already been registered the daylist -->
-<!-- ************************************************************************************************************************* -->
-<div data-role="dialog" id="dialogPopUpExistingRegistration" data-transition="pop">
-    <div id="hdrDia4" data-role="header">
-        <h1>Already existing registration</h1>
-    </div>
-    <div data-role="content">
-        <h4>The registration already exists. </h4>
-
-        <p>If you want to edit this registration you must reopen <br/> the period on the desktop version of the website.
-        </p>
-        <a href="#dayPage" type="button" data-theme="a" data-rel="back">Ok</a>
+        <p>Do you want to reopen period?</p>
+        <a href="#weekPage" type="button" data-theme="a" data-rel="back" id="reopenPeriod">Reopen</a>
+        <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
     </div>
 
 </div>
@@ -310,26 +303,46 @@
     <div id="editContent" data-role="content">
         <form id="editForm">
             <div id="descDiv" data-role="fieldcontain">
-                <label id="descEditLabel">Description:</label>
+                <label id="descEditLabel" for="editDescription">Description:</label>
+                <input type="text" name="editDescription" id="editDescription"/>
 
                 <p></p>
             </div>
 
             <div data-role="fieldcontain">
+                <label id="worktypeLabel" for="worktypeSelect">Worktype:</label>
+
+                <select id="editWorkType" name="editWorkType" data-theme="b" data-native-menu="true">
+                    <option value="">Normal (not overtime)</option>
+                    <option value="OVER50">50% overtime</option>
+                    <option value="OVER100">100% overtime</option>
+                </select>
+            </div>
+            <div data-role="fieldcontain">
                 <label id="hoursEditLabel" for="editHours">Hours worked:</label>
-                <input type="range" name="editHours" id="editHours" value="0" min="0" max="16" step="0.5"
+                <input type="range" name="editHours" id="editHours" value="0" min="0" max="16" step="0.25"
                        data-highlight="true"/>
             </div>
 
-            <fieldset class="ui-grid-a">
-                <div class="ui-block-a"><a href="#dayPage" id="editReg" type="submit" data-rel="back"
-                                           data-theme="a">Save</a></div>
-                <div class="ui-block-b"><a href="#dayPage" data-theme="a" data-rel="back" data-role="button">Cancel</a>
-                </div>
-            </fieldset>
+            <a href="#dayPage" id="editReg" type="submit" data-rel="back" data-theme="a">Save</a>
+            <a href="#dayPage" data-theme="b" data-rel="back" data-role="button">Cancel</a>
         </form>
     </div>
 </div>
+
+<script type="text/javascript" src="js/lib/jquery.js"></script>
+<script type="text/javascript" src="js/lib/jquery.mobile.js"></script>
+<script type="text/javascript" src="js/lib/iscroll-lite.js"></script>
+<script type="text/javascript" src="js/lib/jquery.mobile.iscrollview.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/lib/core.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/lib/sha1.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/lib/enc-base64.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/lib/moment.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/util.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/global-variables.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/model.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/view.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/controller.js"></script>
 
 </body>
 </html>

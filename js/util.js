@@ -33,10 +33,14 @@ function platformSpecific(parameters) {
         ret = parameters.android();
     } else if (platform.ios && parameters.hasOwnProperty("ios")) {
         ret = parameters.ios();
-    } else if (parameters.hasOwnProperty("default")) {
-        ret = parameters.default();
+    } else if (parameters.hasOwnProperty("standard")) {
+        ret = parameters.standard();
     }
     if (ret) {
         return ret;
     }
 }
+
+jQuery.fn.outerHTML = function() {
+    return $('<div>').append( this.eq(0).clone() ).html();
+};
