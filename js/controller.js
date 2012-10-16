@@ -30,7 +30,7 @@ function checkAuthentication(loginToken, onError) {
             }
         },
         error:defaultFunction(onError),
-        complete: $.mobile.hidePageLoadingMsg
+        complete:$.mobile.hidePageLoadingMsg
     });
 }
 $(document).on('ready', function () {
@@ -303,7 +303,11 @@ $(document).on('ready', function () {
     });
 
     weekPageDomElement.on('pagebeforeshow', function () {
-        fillWeekView();
+        try {
+            fillWeekView();
+        } catch (error) {
+            syncDataOnWeekPage();
+        }
     });
 
     $("#dialogEditReg").on("pagebeforeshow", fillEditRegistrationView);
@@ -379,7 +383,7 @@ function syncData(observingDomElement) {
     return function () {
         var onSuccess = function (data) {
             updateFavouriteModel(data.projects);
-            updateWeekModel(data.days);
+            updateWeekModel(data);
             observingDomElement.trigger("modelChanged");
         };
 

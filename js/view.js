@@ -6,7 +6,7 @@ function fillCurrentListInFavPage() {
 
     for (var i = 0; i < favMap.length; i++) {
         var favs = favMap[i];
-        $('#favList').append($('<li id="fav:' + i + '"/>').html('<a href="#" data-split-theme="a" data-split-icon="delete">' + favs + '</a><a href="#" onclick="deleteFavourite(' + i + ')"></a>'));
+        $('#favList').append($('<li id="fav:' + i + '"/>').html('<a href="#" data-split-theme="a" data-split-icon="trash">' + favs + '</a><a href="#" onclick="deleteFavourite(' + i + ')"></a>'));
     }
     $('#favList').listview();
     $('#favText').text("Current favourites");
@@ -44,7 +44,7 @@ function fillDayView() {
     $("#dayList").empty();
     $("#hours").slider("option", "value", 7.5);
 
-    if (weekStatusMap.approved || weekStatusMap.submitted) {
+    if (weekStatusMap.approved || weekStatusMap.rejected) {
         $("#dayForm").hide();
     } else {
         $("#dayForm").show();
@@ -57,25 +57,29 @@ function fillDayView() {
             $("#dayListStatus").text("No time entries registered.");
         } else {
             var dayListContent = "";
+            if (weekStatusMap.rejected) {
+                $("#dayListStatus").text("Period rejected, use the desktop version to edit time entries.");
+            }
             $.each(weekMap[currentDate.toString()], function (taskNumber, registration) {
                 if (registration.projectNumber + "_" + registration.activityCode in favMap) {
                     var project = favMap[registration.projectNumber + "_" + registration.activityCode];
-                    var entryText = project.description + "<p>" + project.projectName + " (" + project.projectNumber + ")";
+                    var entryText = (project.description || "<span class='nodescription'>No description</span>") + "<p>" + project.projectName + " (" + project.projectNumber + ")";
                     if (registration.workType) {
                         entryText += "<br/><strong>" + registration.workType + "</strong>";
                     }
                     entryText += "</p>";
                 } else {
-                    var entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + registration.description + "</p>";
+                    var entryText = "Project nr: " + registration.projectNumber + ", Activity code: " + registration.activityCode + "<p>" + (registration.description || "<span class='nodescription'>No description</span>") + "</p>";
                 }
 
-                if (!weekStatusMap.submitted && !weekStatusMap.approved) {
-                    dayListContent += '<li data-icon="delete" data-theme="b">';
+                if (!weekStatusMap.submitted && !weekStatusMap.approved && !weekStatusMap.rejected) {
+                    dayListContent += '<li data-icon="trash" data-theme="b">';
                     dayListContent += ' <a href="#" class="editEntry" id="edit:' + taskNumber + '">' + entryText + '</a><span class="ui-li-count">' + registration.hours + 'h</span>';
                     dayListContent += ' <a href="#" class="deleteEntry" id="delete:' + taskNumber + '">Delete entry</a>';
+                } else if (registration.rejected) {
+                    dayListContent += '<li class="rejectedEntry" data-theme="f">' + entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
                 } else {
-                    dayListContent += '<li data-icon="check" data-theme="f">';
-                    dayListContent += entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
+                    dayListContent += '<li data-theme="f">' + entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
                 }
                 dayListContent += '</li>';
             });
@@ -99,41 +103,47 @@ function fillEditRegistrationView() {
 }
 
 function fillWeekView() {
+    var dataIcon;
     var listContent = "";
 
-    if (weekStatusMap.approved) {
-        var dataIcon = "check";
-    } else if (weekStatusMap.submitted) {
-        var dataIcon = "check";
-    } else {
-        var dataIcon = "back";
+    if (!weekStatusMap.hoursPerDay) {
+        throw new Error("Data not synchronized");
     }
-
     var datesInPeriod = Object.keys(weekStatusMap.hoursPerDay).sort();
 
     for (var i = 0; i < datesInPeriod.length; i++) {
         var date = datesInPeriod[i];
         var myDate = new MyDate(date);
 
+        if (weekStatusMap.submitted && !weekStatusMap.rejectedPerDay[date]) {
+            dataIcon = "check";
+        } else if (weekStatusMap.rejectedPerDay[date]) {
+            dataIcon = "delete";
+        } else {
+            dataIcon = "edit";
+        }
+
         listContent += "<li id='day:" + date.toString() + "' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'>";
-        listContent += '    <a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count">' + weekStatusMap.hoursPerDay[date] + ' hours' + '</span>';
+        listContent += '    <a href="#">' + myDate.toDateString() + '<p>' + myDate.toWeekDayString() + '</p></a><span class="ui-li-count ' + (weekStatusMap.rejectedPerDay[date] ? 'rejectedEntry' : '') + '">' + weekStatusMap.hoursPerDay[date] + ' hours' + '</span>';
         listContent += "</li>";
     }
 
     $('#weekDescription').empty();
-    if (!weekStatusMap.submitted) {
-        $("#weekButtonDiv").html('<a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop" data-theme="e">Submit period</a>').trigger("create");
-    } else if (weekStatusMap.submitted && !weekStatusMap.approved) {
+    $('#weekButtonDiv').empty();
+    if (weekStatusMap.submitted && !weekStatusMap.approved && !weekStatusMap.rejected) {
         $('#weekDescription').append("<p class='submitted'>Period submitted.</p>");
         $("#weekButtonDiv").html('<a href="#dialogReopen" data-role="button" id="reopenPopup" data-rel="dialog" data-transition="pop" data-theme="a">Reopen period</a>').trigger("create");
+    } else if (weekStatusMap.rejected) {
+        $('#weekDescription').append("<p class='rejected'>Period rejected. Use the desktop version to edit time period.</p>");
     } else if (weekStatusMap.approved) {
-        $('#weekDescription').append("<p class='approved'>Period submitted and approved.</p>");
+        $('#weekDescription').append("<p class='approved'>Period approved.</p>");
+    } else {
+        $("#weekButtonDiv").html('<a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop" data-theme="e">Submit period</a>').trigger("create");
     }
     $('#weekDescription').append("<p>You have logged " + weekStatusMap.totalHours + " hours this period.</p>");
 
-
     $("#weekList").html(listContent).listview("refresh", true);
 
-    $('#weekPageTitle').text(periodStartDate.toDateString() + " - " + periodEndDate.toDateString());
-    $('#contentDia').children('p').text("You have logged " + weekStatusMap.totalHours + " hours in the period: " + periodStartDate.toDateString() + " - " + periodEndDate.toDateString());
+    $('#weekPageTitle').text(weekStatusMap.periodDescription || "");
+    $('#contentDia').children('p').html("You have logged <strong>" + weekStatusMap.totalHours + "</strong> hours in the period <strong>" + weekStatusMap.periodDescription + "</strong> (" + periodStartDate.toDateString() + " - " + periodEndDate.toDateString() + ").");
 }

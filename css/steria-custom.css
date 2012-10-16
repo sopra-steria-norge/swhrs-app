@@ -39,6 +39,20 @@ div.navBarFooter {
     font-weight: bold;
 }
 
+.rejected {
+    color: #f50000;
+    font-weight: bold;
+}
+
+.rejectedEntry {
+    color: #f50000;
+}
+
+.nodescription {
+    color: #aaa;
+    font-style: italic;
+}
+
 .ui-body-a {
     background: url("images/light_toast.png") repeat;
 }

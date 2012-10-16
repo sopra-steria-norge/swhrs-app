@@ -39,18 +39,21 @@ function updateFavouriteModel(projects) {
     favMap = $.extend(projects, {});
 }
 
-function updateWeekModel(days) {
-    weekMap = $.extend(days, {});
+function updateWeekModel(data) {
+    weekMap = $.extend(data.days, {});
     var datesInWeek = Object.keys(weekMap).sort();
     periodStartDate.setDate(new MyDate(datesInWeek[0]));
     periodEndDate.setDate(new MyDate(datesInWeek[datesInWeek.length - 1]));
 
-    weekStatusMap = {submitted: false, approved: false, totalHours: 0, hoursPerDay: {}};
+    weekStatusMap = {submitted:false, approved:false, rejected:false, periodDescription:data.periodDescription, totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 
     $.each(datesInWeek, function (i, date) {
         weekStatusMap.hoursPerDay[date] = 0;
+        weekStatusMap.rejectedPerDay[date] = false;
         $.each(weekMap[date], function (j, registration) {
             weekStatusMap.hoursPerDay[date] += registration.hours;
+            weekStatusMap.rejectedPerDay[date] |= registration.rejected;
+            weekStatusMap.rejected |= registration.rejected;
             weekStatusMap.submitted |= registration.submitted;
             weekStatusMap.approved |= registration.approved;
         });
@@ -60,12 +63,15 @@ function updateWeekModel(days) {
 
 function deleteRegistration(taskNr) {
     delete weekMap[currentDate.toString()][taskNr];
-    weekStatusMap = {submitted: false, approved: false, totalHours: 0, hoursPerDay: {}};
+    var currentPeriodDescription = weekStatusMap.periodDescription;
+    weekStatusMap = $.extend(weekStatusPrototype, {periodDescription: currentPeriodDescription});
 
     $.each(Object.keys(weekMap), function (i, date) {
         weekStatusMap.hoursPerDay[date] = 0;
         $.each(weekMap[date], function (j, registration) {
             weekStatusMap.hoursPerDay[date] += registration.hours;
+            weekStatusMap.rejectedPerDay[date] = registration.rejected;
+            weekStatusMap.rejected |= registration.rejected;
             weekStatusMap.submitted |= registration.submitted;
             weekStatusMap.approved |= registration.approved;
         });

@@ -4,10 +4,9 @@ var returnToPage,
     regMap,
     currentDate,
     periodStartDate,
-    periodEndDate,
-    periodApproved,
-    periodSubmitted;
+    periodEndDate;
 
+var weekStatusPrototype = {submitted:false, approved:false, rejected: false, periodDescription:"", totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 var DATE_FORMAT = "YYYY-MM-DD";
 var favMap = {};
 var weekMap = {};

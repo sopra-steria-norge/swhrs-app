@@ -1103,7 +1103,7 @@
             var tuples = [
                     // action, add listener, listener list, final state
                     [ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
-                    [ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
+                    [ "reject", "fail", jQuery.Callbacks("once memory"), "rejectedPerDay" ],
                     [ "notify", "progress", jQuery.Callbacks("memory") ]
                 ],
                 state = "pending",
