@@ -92,14 +92,12 @@ function fillDayView() {
 }
 
 function fillEditRegistrationView() {
-    try {
-        $('#editDescription').val(weekMap[currentDate.toString()][editTaskNumber].description);
-        $('#editHours').val(weekMap[currentDate.toString()][editTaskNumber].hours);
-        $('#editWorkType').val(weekMap[currentDate.toString()][editTaskNumber].workType);
-        $('#editHours').slider('refresh');
-    } catch (error) {
-
-    }
+    $('#editDescription').val(weekMap[currentDate.toString()][editTaskNumber].description);
+    $('#editHours').val(weekMap[currentDate.toString()][editTaskNumber].hours);
+    var workType = weekMap[currentDate.toString()][editTaskNumber].workType;
+    $('#editWorkType').val(workType);
+    $('#editWorkType').selectmenu('refresh', true);
+    $('#editHours').slider('refresh');
 }
 
 function fillWeekView() {
