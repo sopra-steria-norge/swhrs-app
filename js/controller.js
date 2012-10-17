@@ -33,6 +33,7 @@ function checkAuthentication(loginToken, onError) {
         complete:$.mobile.hidePageLoadingMsg
     });
 }
+
 $(document).on('ready', function () {
     var dayPageDomElement = $("#dayPage");
     var weekPageDomElement = $("#weekPage");
@@ -116,8 +117,8 @@ $(document).on('ready', function () {
 
         function pulsateTimeEntry(taskNumber) {
             window.setTimeout(function () {
-                $("#entry" + taskNumber).effect("pulsate", {times:2}, 1000);
-            }, 500);
+                $("#entry" + taskNumber).effect("pulsate", {times:1}, 600);
+            }, 200);
         }
 
         $('#dayForm').submit(function (event) {

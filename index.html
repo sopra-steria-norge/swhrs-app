@@ -15,7 +15,7 @@
     <link rel="stylesheet" type="text/css" href="css/steria-custom.css"/>
 
     <link rel="shortcut icon" href="about:blank"/>
-    <script language="javascript"> document.ontouchmove = function(e){ e.preventDefault(); }</script>
+    <!--<script language="javascript"> document.ontouchmove = function(e){ e.preventDefault(); }</script>-->
 </head>
 
 <body>
@@ -123,9 +123,9 @@
 <div data-role="page" data-theme="a" id="favPage" data-needs-auth="true">
     <div data-role="header" id="hdrFav" data-nobackbtn="false" data-theme="a" data-position="fixed">
         <!--<script>-->
-            <!--platformSpecific({ios:function () {-->
-                <!--document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');-->
-            <!--}});-->
+        <!--platformSpecific({ios:function () {-->
+        <!--document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');-->
+        <!--}});-->
         <!--</script>-->
         <h1>Favourites</h1>
     </div>
@@ -217,11 +217,7 @@
             <label for="password">Password:</label><input type="password" name="password" id="password"
                                                           data-role="fieldcontain"><br/>
 
-            <fieldset class="ui-grid-a">
-                <div class="ui-block-a">
-                    <button id="loginBtn" name="loginBtn" type="submit" data-theme="a">Login</button>
-                </div>
-            </fieldset>
+            <button id="loginBtn" name="loginBtn" type="submit" data-theme="a">Login</button>
         </form>
         <p id="loginErr" class="wrong"></p>
     </div>
