@@ -8,12 +8,7 @@ var MyDate = (function () {
     }
 
     MyDate.prototype.setDate = function (fromDate, days) {
-        if (fromDate) {
-            if (!days) {
-                days = 0;
-            }
-            this.date.setTime(fromDate.date.getTime() + 24 * 60 * 60 * 1000 * days);
-        }
+        this.date.setTime(moment(this.date).add('days', days || 0).toDate().getTime());
     };
 
     MyDate.prototype.setDateFromString = function (fromDate) {
@@ -42,8 +37,8 @@ function updateFavouriteModel(projects) {
 function updateWeekModel(data) {
     weekMap = $.extend(data.days, {});
     var datesInWeek = Object.keys(weekMap).sort();
-    periodStartDate.setDate(new MyDate(datesInWeek[0]));
-    periodEndDate.setDate(new MyDate(datesInWeek[datesInWeek.length - 1]));
+    periodStartDate = moment(datesInWeek[0], "YYYY-MM-DD");
+    periodEndDate = moment(datesInWeek[datesInWeek.length - 1], "YYYY-MM-DD");
 
     weekStatusMap = {submitted:false, approved:false, rejected:false, periodDescription:data.periodDescription, totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 
@@ -62,9 +57,8 @@ function updateWeekModel(data) {
 }
 
 function deleteRegistration(taskNr) {
-    delete weekMap[currentDate.toString()][taskNr];
-    var currentPeriodDescription = weekStatusMap.periodDescription;
-    weekStatusMap = $.extend(weekStatusPrototype, {periodDescription: currentPeriodDescription});
+    delete weekMap[currentDate.format("YYYY-MM-DD")][taskNr];
+    weekStatusMap = {submitted:false, approved:false, rejected:false, periodDescription:weekStatusMap.periodDescription, totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 
     $.each(Object.keys(weekMap), function (i, date) {
         weekStatusMap.hoursPerDay[date] = 0;

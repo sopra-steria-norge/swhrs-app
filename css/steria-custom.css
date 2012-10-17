@@ -34,6 +34,10 @@ div.navBarFooter {
     text-align: center;
 }
 
+.headerButton {
+    border: 0;
+}
+
 .approved {
     color: #7AB800;
     font-weight: bold;
@@ -112,6 +116,7 @@ label {
 /*}*/
 
 #dayPageTitle, #weekPageTitle {
+    text-overflow: clip;
     font-size: 95%;
 }
 

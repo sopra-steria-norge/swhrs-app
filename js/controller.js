@@ -1,6 +1,6 @@
-currentDate = new MyDate();
-periodStartDate = new MyDate();
-periodEndDate = new MyDate();
+currentDate = moment();
+periodStartDate = moment();
+periodEndDate = moment();
 
 
 $(document).on("pagebeforechange", function (event, data) {
@@ -78,8 +78,8 @@ $(document).on('ready', function () {
         }
 
         $('#prevDayBtn').on("click", function () {
-            currentDate.setDate(currentDate, -1);
-            if (currentDate.date < periodStartDate.date) {
+            currentDate = currentDate.subtract('days', 1);
+            if (currentDate.diff(periodStartDate, 'days') < 0) {
                 syncDataOnDayPage();
             } else {
                 dayPageDomElement.trigger("modelChanged");
@@ -87,8 +87,8 @@ $(document).on('ready', function () {
         });
 
         $('#nextDayBtn').on("click", function () {
-            currentDate.setDate(currentDate, 1);
-            if (currentDate.date > periodEndDate.date) {
+            currentDate = currentDate.add('days', 1);
+            if (currentDate.diff(periodEndDate, 'days') > 0) {
                 syncDataOnDayPage();
             } else {
                 dayPageDomElement.trigger("modelChanged");
@@ -101,14 +101,13 @@ $(document).on('ready', function () {
         }
 
         dayPageDomElement.on('pagebeforeshow', function (event) {
+            console.log("Try to view page: " + currentDate.date);
             removeValidationHighlighting();
-            if (event.target.id !== "dayPage") {
-                try {
-                    fillDayView();
-                    fillSelectMenuInDayView();
-                } catch (error) {
-                    syncDataOnDayPage();
-                }
+            try {
+                fillDayView();
+                fillSelectMenuInDayView();
+            } catch (error) {
+                syncDataOnDayPage();
             }
         });
 
@@ -148,13 +147,13 @@ $(document).on('ready', function () {
             var selectedFav = favMap[favForm]; //The Favourite object selected in the select box
 
             var lunchTaskNumber;
-            if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.toString()])) {
+            if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.format("YYYY-MM-DD")])) {
                 postHourRegistration({
                     'projectNumber':'LUNSJ',
                     'activityCode':'LU',
                     'description':'Lunsj',
                     'hours':0.5,
-                    'date':currentDate.toString()
+                    'date':currentDate.format("YYYY-MM-DD")
                 }, function (data) {
                     dayPageDomElement.one("modelChanged", function () {
                         pulsateTimeEntry(data.taskNumber);
@@ -167,7 +166,7 @@ $(document).on('ready', function () {
                 'activityCode':selectedFav.activityCode,
                 'description':selectedFav.description,
                 'hours':hourForm,
-                'date':currentDate.toString()
+                'date':currentDate.format("YYYY-MM-DD")
             }, function (data) {
                 editTaskNumber = data.taskNumber;
                 syncDataOnDayPage();
@@ -203,9 +202,9 @@ $(document).on('ready', function () {
 
             var edit = {
                 'taskNumber':editTaskNumber,
-                'projectNumber':weekMap[currentDate.toString()][editTaskNumber].projectNumber,
-                'activityCode':weekMap[currentDate.toString()][editTaskNumber].activityCode,
-                'date':currentDate.toString(),
+                'projectNumber':weekMap[currentDate.format("YYYY-MM-DD")][editTaskNumber].projectNumber,
+                'activityCode':weekMap[currentDate.format("YYYY-MM-DD")][editTaskNumber].activityCode,
+                'date':currentDate.format("YYYY-MM-DD"),
                 'workType':editWorkType,
                 'description':editDescription,
                 'hours':editHours
@@ -235,12 +234,12 @@ $(document).on('ready', function () {
 
     function addWeekPageEventHandlers() {
         $('#prevWeekBtn').on("click", function () {
-            currentDate.setDate(periodStartDate, -1);
+            currentDate = periodStartDate.subtract('days', 1);
             syncDataOnWeekPage();
         });
 
         $('#nextWeekBtn').on("click", function () {
-            currentDate.setDate(periodEndDate, 1);
+            currentDate = periodEndDate.add('days', 1);
             syncDataOnWeekPage();
         });
 
@@ -251,7 +250,7 @@ $(document).on('ready', function () {
          */
         $('#weekList').on('click', 'li', function () {
             var date = $(this).attr("id").substring(4);
-            currentDate.setDateFromString(date);
+            currentDate = moment(date, "YYYY-MM-DD");
             $.mobile.changePage("#dayPage");
             dayPageDomElement.trigger("modelChanged");
         });
@@ -331,8 +330,9 @@ $(document).on('ready', function () {
     addSettingPageEventHandlers();
 
     $(document).on("modelChanged", function () {
-        if (currentDate.toString() > periodEndDate.toString() || currentDate.toString() < periodStartDate.toString() || periodEndDate.toString() < periodStartDate.toString()) {
-            throw new Error("Inconsistent periods");
+        if (currentDate.format("YYYY-MM-DD") > periodEndDate.toString() || currentDate.format("YYYY-MM-DD") < periodStartDate.toString() || periodEndDate.toString() < periodStartDate.toString()) {
+            console.log("Inconsistent periods");
+//            throw new Error("Inconsistent periods");
         }
     });
 
@@ -422,7 +422,7 @@ function syncData(observingDomElement) {
             observingDomElement.trigger("modelChanged");
         };
 
-        authenticatedAjax("GET", "hours/week", {date:currentDate.toString()}, onSuccess);
+        authenticatedAjax("GET", "hours/week", {date:currentDate.format("YYYY-MM-DD")}, onSuccess);
     }
 }
 
