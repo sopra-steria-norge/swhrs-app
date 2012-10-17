@@ -65,7 +65,7 @@ function fillDayView() {
                     var project = favMap[registration.projectNumber + "_" + registration.activityCode];
                     var entryText = (project.description || "<span class='nodescription'>No description</span>") + "<p>" + project.projectName + " (" + project.projectNumber + ")";
                     if (registration.workType) {
-                        entryText += "<br/><strong>" + registration.workType + "</strong>";
+                        entryText += "<br/><span class='workType'>" + registration.workType + "</span>";
                     }
                     entryText += "</p>";
                 } else {
@@ -73,11 +73,11 @@ function fillDayView() {
                 }
 
                 if (!weekStatusMap.submitted && !weekStatusMap.approved && !weekStatusMap.rejected) {
-                    dayListContent += '<li data-icon="trash" data-theme="b">';
+                    dayListContent += '<li id="entry' + taskNumber + '" data-icon="trash" data-theme="b">';
                     dayListContent += ' <a href="#" class="editEntry" id="edit:' + taskNumber + '">' + entryText + '</a><span class="ui-li-count">' + registration.hours + 'h</span>';
                     dayListContent += ' <a href="#" class="deleteEntry" id="delete:' + taskNumber + '">Delete entry</a>';
                 } else if (registration.rejected) {
-                    dayListContent += '<li class="rejectedEntry" data-theme="f">' + entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
+                    dayListContent += '<li class="rejectedEntry" data-theme="f">' + entryText + '<span class="ui-li-count">' + registration.hours + ' h</span>';
                 } else {
                     dayListContent += '<li data-theme="f">' + entryText + '<span class="ui-li-count">' + registration.hours + 'h</span>';
                 }

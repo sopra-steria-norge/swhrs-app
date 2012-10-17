@@ -15,7 +15,7 @@
     <link rel="stylesheet" type="text/css" href="css/steria-custom.css"/>
 
     <link rel="shortcut icon" href="about:blank"/>
-
+    <script language="javascript"> document.ontouchmove = function(e){ e.preventDefault(); }</script>
 </head>
 
 <body>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- DayContent: Contains the form that shall be submitted, project, hours worked, lunch, submit and overtime button -->
-    <div data-role="content" id="contentDay" class="scrollable" data-role="content" data-iscroll>
+    <div data-role="content" id="contentDay" data-role="content">
         <form id="dayForm">
             <div id="favDiv" data-role="fieldcontain">
                 <label id="favLabel" for="fav">Project</label>
@@ -89,7 +89,7 @@
     </div>
 
     <!-- WeekpageContent: List of the weekdays and the current status -->
-    <div data-role="content" id="contentWeek" class="scrollable" data-role="content" data-iscroll>
+    <div data-role="content" id="contentWeek" data-role="content">
         <div id="weekDescription">
         </div>
         <ul id="weekList" data-role="listview" data-inset="true"></ul>
@@ -122,11 +122,11 @@
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="favPage" data-needs-auth="true">
     <div data-role="header" id="hdrFav" data-nobackbtn="false" data-theme="a" data-position="fixed">
-        <script>
-            platformSpecific({ios:function () {
-                document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');
-            }});
-        </script>
+        <!--<script>-->
+            <!--platformSpecific({ios:function () {-->
+                <!--document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');-->
+            <!--}});-->
+        <!--</script>-->
         <h1>Favourites</h1>
     </div>
 
@@ -325,12 +325,13 @@
             </div>
 
             <a href="#dayPage" id="editReg" type="submit" data-rel="back" data-theme="a">Save</a>
-            <a href="#dayPage" data-theme="b" data-rel="back" data-role="button">Cancel</a>
+            <a href="#dayPage" id="cancelEditReg" data-theme="b" data-rel="back" data-role="button">Cancel</a>
         </form>
     </div>
 </div>
 
 <script type="text/javascript" src="js/lib/jquery.js"></script>
+<script type="text/javascript" src="js/lib/jquery-ui-1.9.0.custom.min.js"></script>
 <script type="text/javascript" src="js/lib/jquery.mobile.js"></script>
 <script type="text/javascript" src="js/lib/iscroll-lite.js"></script>
 <script type="text/javascript" src="js/lib/jquery.mobile.iscrollview.js"></script>

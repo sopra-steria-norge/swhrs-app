@@ -72,10 +72,8 @@ $(document).on('ready', function () {
             authenticatedAjax("POST", "hours/deleteRegistration", delreg, onSuccess);
         }
 
-        function postHourRegistration(myData) {
-            authenticatedAjax('POST', 'hours/registration', myData, function () {
-                syncDataOnDayPage();
-            });
+        function postHourRegistration(myData, onSuccess) {
+            authenticatedAjax('POST', 'hours/registration', myData, onSuccess);
         }
 
         $('#prevDayBtn').on("click", function () {
@@ -116,6 +114,12 @@ $(document).on('ready', function () {
         $("#dayForm").find("input,select").on("change", removeValidationHighlighting);
 
 
+        function pulsateTimeEntry(taskNumber) {
+            window.setTimeout(function () {
+                $("#entry" + taskNumber).effect("pulsate", {times:2}, 1000);
+            }, 500);
+        }
+
         $('#dayForm').submit(function (event) {
             event.preventDefault();
             var err = false;
@@ -137,12 +141,12 @@ $(document).on('ready', function () {
                 return false;
             }
 
-            $.mobile.silentScroll(200);
             var favForm = $("#fav").val();
             var hourForm = $("#hours").val();
             var lunchForm = $("#lunch").val();
             var selectedFav = favMap[favForm]; //The Favourite object selected in the select box
 
+            var lunchTaskNumber;
             if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.toString()])) {
                 postHourRegistration({
                     'projectNumber':'LUNSJ',
@@ -150,6 +154,10 @@ $(document).on('ready', function () {
                     'description':'Lunsj',
                     'hours':0.5,
                     'date':currentDate.toString()
+                }, function (data) {
+                    dayPageDomElement.one("modelChanged", function () {
+                        pulsateTimeEntry(data.taskNumber);
+                    });
                 });
             }
 
@@ -159,7 +167,15 @@ $(document).on('ready', function () {
                 'description':selectedFav.description,
                 'hours':hourForm,
                 'date':currentDate.toString()
+            }, function (data) {
+                editTaskNumber = data.taskNumber;
+                syncDataOnDayPage();
+                dayPageDomElement.one("modelChanged", function () {
+                    $.mobile.silentScroll($("#entry" + editTaskNumber).offset().top);
+                    pulsateTimeEntry(editTaskNumber);
+                });
             });
+
             return false;
         });
 
@@ -196,6 +212,10 @@ $(document).on('ready', function () {
 
             authenticatedAjax("POST", "hours/updateRegistration", edit, function () {
                 syncDataOnDayPage();
+                dayPageDomElement.one("pageshow", function () {
+                    $.mobile.silentScroll($("#entry" + editTaskNumber).offset().top);
+                    pulsateTimeEntry(editTaskNumber);
+                });
             });
         });
 
@@ -208,6 +228,8 @@ $(document).on('ready', function () {
             var taskNumber = $(this).attr("id").substring("delete:".length);
             deleteRegistrationHandler(taskNumber);
         });
+
+
     }
 
     function addWeekPageEventHandlers() {
@@ -264,7 +286,9 @@ $(document).on('ready', function () {
     function addConnectionLostEventHandler() {
         $("#connectionLostLink").on("click", function () {
             returnToPage = location.hash;
-            checkAuthentication(getLoginToken());
+            checkAuthentication(getLoginToken(), function () {
+                // do nothing on error
+            });
         });
     }
 
@@ -277,7 +301,16 @@ $(document).on('ready', function () {
             };
             checkAuthentication(loginToken, function () {
                 $('#loginErr').text("Wrong username/password");
+                window.setTimeout(function () {
+                    $('#loginErr').empty();
+                }, 2000);
+                redirectToLogin();
             });
+            return false;
+        });
+
+        $("#loginForm").find("input,select").on("change", function () {
+            $('#loginErr').empty();
         });
     }
 
@@ -346,28 +379,29 @@ function authenticatedAjax(type, url, data, success) {
             "X-Authentication-Token":JSON.stringify(getLoginToken())
         },
         success:defaultFunction(success),
-        statusCode:{
-            403:redirectToLogin
-        },
         error:function (jqXHR, textStatus) {
-            var message = "There was an error with the AJAX request.\n";
-            switch (textStatus) {
-                case 'timeout':
-                    message += "The request timed out.";
-                    break;
-                case 'notmodified':
-                    message += "The request was not modified but was not retrieved from the cache.";
-                    break;
-                case 'parsererror':
-                    message += "XML/Json format is bad.";
-                    break;
-                default:
-                    message += "HTTP Error (" + jqXHR.status + " " + jqXHR.statusText + ").";
-            }
+            if (jqXHR.status === 403) {
+                redirectToLogin();
+            } else {
+                var message = "There was an error with the AJAX request.\n";
+                switch (textStatus) {
+                    case 'timeout':
+                        message += "The request timed out.";
+                        break;
+                    case 'notmodified':
+                        message += "The request was not modified but was not retrieved from the cache.";
+                        break;
+                    case 'parsererror':
+                        message += "XML/Json format is bad.";
+                        break;
+                    default:
+                        message += "HTTP Error (" + jqXHR.status + " " + jqXHR.statusText + ").";
+                }
 
-            $.mobile.hidePageLoadingMsg();
-            alert(message);
-            $.mobile.changePage("#connectionLostPage", {changeHash:false});
+                $.mobile.hidePageLoadingMsg();
+                alert(message);
+                $.mobile.changePage("#connectionLostPage", {changeHash:false});
+            }
         },
         complete:function () {
             $.mobile.hidePageLoadingMsg();
