@@ -15,17 +15,33 @@
     <link rel="stylesheet" type="text/css" href="css/steria-custom.css"/>
 
     <link rel="shortcut icon" href="about:blank"/>
-    <!--<script language="javascript"> document.ontouchmove = function(e){ e.preventDefault(); }</script>-->
+
+    <script type="text/javascript" src="cordova-2.1.0.js"></script>
+    <script type="text/javascript" src="js/lib/energize-min.js"></script>
+    <script type="text/javascript" src="js/lib/jquery.js"></script>
+    <script type="text/javascript" src="js/lib/jquery-ui-1.9.0.custom.min.js"></script>
+    <script type="text/javascript" src="js/lib/jquery.mobile.js"></script>
+    <script type="text/javascript" src="js/lib/iscroll-lite.js"></script>
+    <script type="text/javascript" src="js/lib/jquery.mobile.iscrollview.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lib/core.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lib/sha1.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lib/enc-base64.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/lib/moment.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/util.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/global-variables.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/model.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/view.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/controller.js"></script>
+
 </head>
 
 <body>
-
 
 <!-- ********************************************************************************** -->
 <!-- dayPage: Showing the dayView where you can log hours -->
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="dayPage" data-needs-auth="true">
-    <div data-role="header" id="hdrDay" data-nobackbtn="false" data-theme="a">
+    <div data-role="header" class="header"  xdata-position="fixed" id="hdrDay" data-nobackbtn="false" data-theme="a">
         <a href="#" id="prevDayBtn" class="headerButton" data-icon="arrow-l">Prev</a>
 
         <h1 id="dayPageTitle"></h1>
@@ -34,7 +50,7 @@
     </div>
 
     <!-- DayContent: Contains the form that shall be submitted, project, hours worked, lunch, submit and overtime button -->
-    <div data-role="content" id="contentDay" data-role="content">
+    <div data-role="content" class="content" id="contentDay">
         <form id="dayForm">
             <div id="favDiv" data-role="fieldcontain">
                 <label id="favLabel" for="fav">Project</label>
@@ -59,16 +75,16 @@
 
     <!-- Mainpage footer -->
     <div class="navBarFooter">
-        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+        <div data-role="footer" class="footer"  xdata-position="fixed" xdata-id="navBarFooter" data-tap-toggle="false">
             <div data-role="navbar">
                 <ul>
                     <li><a href="#dayPage" data-theme="a" data-icon="home"
                            class="ui-btn-active ui-state-persist">Day</a>
                     </li>
                     <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
-                           xdata-transition="slide">Week</a></li>
+                           data-transition="slide">Week</a></li>
                     <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                           xdata-transition="slide">Settings</a></li>
+                           data-transition="slide">Settings</a></li>
                 </ul>
             </div>
         </div>
@@ -81,15 +97,15 @@
 <!-- weekPage: Showing an overview over the current week -->
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="weekPage" data-needs-auth="true">
-    <div data-role="header" id="hdrWeek" data-nobackbtn="false" data-theme="a" data-position="fixed">
-        <a href="#" id="prevWeekBtn" class="headerButton" data-icon="arrow-l" data-direction="" xdata-transition="slide">Prev</a>
+    <div data-role="header" class="header"  xdata-position="fixed" id="hdrWeek" data-nobackbtn="false" data-theme="a">
+        <a href="#" id="prevWeekBtn" class="headerButton" data-icon="arrow-l" data-direction="" data-transition="slide">Prev</a>
 
         <h1 id="weekPageTitle"></h1>
-        <a href="#" id="nextWeekBtn" class="headerButton" data-icon="arrow-r" data-iconpos="right" xdata-transition="slide">Next</a>
+        <a href="#" id="nextWeekBtn" class="headerButton" data-icon="arrow-r" data-iconpos="right" data-transition="slide">Next</a>
     </div>
 
     <!-- WeekpageContent: List of the weekdays and the current status -->
-    <div data-role="content" id="contentWeek" data-role="content">
+    <div data-role="content" class="content"  id="contentWeek" data-role="content">
         <div id="weekDescription">
         </div>
         <ul id="weekList" data-role="listview" data-inset="true"></ul>
@@ -99,15 +115,15 @@
 
     <!-- Mainpage footer -->
     <div class="navBarFooter">
-        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+        <div data-role="footer" class="footer"  xdata-position="fixed" xdata-id="navBarFooter" data-tap-toggle="false">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#dayPage" data-theme="a" data-icon="home" xdata-transition="slide"
+                    <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide"
                            data-direction="reverse">Day</a>
                     </li>
                     <li><a href="#weekPage" data-theme="a" data-icon="grid"
                            class="ui-btn-active ui-state-persist">Week</a></li>
-                    <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" xdata-transition="slide">Settings</a>
+                    <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear" data-transition="slide">Settings</a>
                     </li>
                 </ul>
             </div>
@@ -121,17 +137,17 @@
 <!-- Favpage: Contains a searchable list over all projects -->
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="favPage" data-needs-auth="true">
-    <div data-role="header" id="hdrFav" data-nobackbtn="false" data-theme="a" data-position="fixed">
+    <div data-role="header" class="header"  xdata-position="fixed" id="hdrFav" data-nobackbtn="false" data-theme="a">
         <!--<script>-->
         <!--platformSpecific({ios:function () {-->
-        <!--document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" xdata-transition="slide">Settings</a>');-->
+        <!--document.write('<a href="#settingsPage" data-icon="arrow-l" data-direction="reverse" data-transition="slide">Settings</a>');-->
         <!--}});-->
         <!--</script>-->
         <h1>Favourites</h1>
     </div>
 
     <!-- FavpageContent -->
-    <div data-role="content" id="contentFav">
+    <div data-role="content" class="content"  id="contentFav">
         <form id="searchForm">
             <input type="text" name="favSearch" id="favSearch" value="" data-role="fieldcontain"/>
             <button id="favBtn" name="favBtn" type="button" data-theme="a">Search Projects</button>
@@ -146,16 +162,16 @@
 
     <!-- Mainpage footer -->
     <div class="navBarFooter">
-        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+        <div data-role="footer" class="footer"  xdata-position="fixed" xdata-id="navBarFooter" data-tap-toggle="false">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#dayPage" data-theme="a" data-icon="home" xdata-transition="slide"
+                    <li><a href="#dayPage" data-theme="a" data-icon="home" data-transition="slide"
                            data-direction="reverse">Day</a>
                     </li>
                     <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid"
-                           xdata-transition="slide" data-direction="reverse">Week</a></li>
+                           data-transition="slide" data-direction="reverse">Week</a></li>
                     <li><a href="#settingsPage" class="addLink" data-theme="a" data-icon="gear"
-                           xdata-transition="slide" data-direction="reverse">Settings</a></li>
+                           data-transition="slide" data-direction="reverse">Settings</a></li>
                 </ul>
             </div>
         </div>
@@ -168,11 +184,11 @@
 <!-- Settingspage:  -->
 <!-- ********************************************************************************** -->
 <div data-role="page" data-theme="a" id="settingsPage">
-    <div data-role="header" id="hdrAdd" data-nobackbtn="false" data-theme="a" data-position="fixed">
+    <div data-role="header" class="header" xdata-position="fixed" id="hdrAdd" data-nobackbtn="false" data-theme="a">
         <h1>Settings</h1>
     </div>
 
-    <div data-role="content" id="contentSettings">
+    <div data-role="content" class="content"  id="contentSettings">
         <div id="lunchDiv" data-role="fieldcontain">
             <label for="lunch">Automatically add lunch</label>
             <select name="lunch_r" id="lunch" data-role="slider" data-theme="b">
@@ -181,17 +197,17 @@
             </select>
         </div>
 
-        <a href="#" data-role="button" id="logoutBtn" xdata-transition="pop" data-theme="d">Logout</a>
+        <a href="#" data-role="button" id="logoutBtn" data-transition="pop" data-theme="d">Logout</a>
     </div>
 
     <!-- Settingspage footer -->
     <div class="navBarFooter">
-        <div data-role="footer" data-position="fixed" data-id="navBarFooter" data-tap-toggle="false">
+        <div data-role="footer" class="footer"  xdata-position="fixed" xdata-id="navBarFooter" data-tap-toggle="false">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" xdata-transition="slide"
+                    <li><a href="#dayPage" class="dayLink" data-theme="a" data-icon="home" data-transition="slide"
                            data-direction="reverse">Day</a>
-                    <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" xdata-transition="slide"
+                    <li><a href="#weekPage" class="weekLink" data-theme="a" data-icon="grid" data-transition="slide"
                            data-direction="reverse">Week</a>
                     <li><a href="#settingsPage" data-theme="a" data-icon="gear" class="ui-btn-active ui-state-persist">Settings</a>
                 </ul>
@@ -206,11 +222,11 @@
 <!-- Login page: Enter username/password and country of origin to enter the application -->
 <!-- ********************************************************************************** -->
 <div data-role="page" id="loginPage" data-theme="a">
-    <div data-role="header" id="hdrLogin" data-theme="a">
+    <div data-role="header" class="header"  id="hdrLogin" data-theme="a">
         <h1>Login Steriatime</h1>
     </div>
 
-    <div data-role="content" id="contentLogin">
+    <div data-role="content" class="content"  id="contentLogin">
         <form id="loginForm">
             <label for="username">Username:</label><input type="text" name="username" id="username"
                                                           data-role="fieldcontain"><br/>
@@ -227,13 +243,8 @@
 <!-- Connection lost page -->
 <!-- ********************************************************************************** -->
 <div data-role="page" id="connectionLostPage" data-theme="a">
-    <div data-role="header" data-theme="a">
-        <h1>Steria Work Hours</h1>
-    </div>
-
     <a id="connectionLostLink" href="">
-        <div data-role="content" id="connectionLostContent">
-            <img src="img/error.png"/>
+        <div data-role="content" class="content"  id="connectionLostContent">
 
             <p class="connectionLost">Connection lost</p>
 
@@ -247,11 +258,11 @@
 <!-- Dialog box: Dialogbox to confirm if you want to confirm your hours for the period -->
 <!-- ********************************************************************************** -->
 <div data-role="dialog" id="dialogPopUp">
-    <div data-role="header">
+    <div data-role="header" class="header" >
         <h1>Confirm</h1>
     </div>
 
-    <div id="contentDia" data-role="content">
+    <div id="contentDia" data-role="content" class="content" >
         <p></p>
         <a href="#weekPage" type="button" data-theme="e" data-rel="back" id="submitPeriod">Submit</a>
         <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
@@ -259,10 +270,10 @@
 </div>
 
 <div data-role="dialog" id="dialogPopUp2">
-    <div id="hdrDia2" data-role="header">
+    <div id="hdrDia2" data-role="header" class="header" >
         <h1>Add?</h1>
     </div>
-    <div id="contentDia2" data-role="content">
+    <div id="contentDia2" data-role="content" class="content" >
         <h4>Do you want to add this project to your favourite list?</h4>
 
         <p></p>
@@ -277,11 +288,11 @@
 <!-- ***************************************************************************************************** -->
 <!-- Dialog box: Dialogbox with feedback that the registration is already submitted and can not be deleted -->
 <!-- ***************************************************************************************************** -->
-<div data-role="dialog" id="dialogReopen" xdata-transition="pop">
-    <div id="hdrDia3" data-role="header">
+<div data-role="dialog" id="dialogReopen" data-transition="pop">
+    <div id="hdrDia3" data-role="header" class="header" >
         <h1>Confirm</h1>
     </div>
-    <div data-role="content">
+    <div data-role="content" class="content" >
         <p>Do you want to reopen period?</p>
         <a href="#weekPage" type="button" data-theme="a" data-rel="back" id="reopenPeriod">Reopen</a>
         <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
@@ -292,11 +303,11 @@
 <!-- ****************************************************************** -->
 <!-- Dialog box: This is the dialog box used for editing a registration -->
 <!-- ****************************************************************** -->
-<div data-role="dialog" id="dialogEditReg" xdata-transition="slidedown">
-    <div id="editDiaHeader" data-role="header">
+<div data-role="dialog" id="dialogEditReg" data-transition="slidedown">
+    <div id="editDiaHeader" data-role="header" class="header" >
         <h1>Edit registration</h1>
     </div>
-    <div id="editContent" data-role="content">
+    <div id="editContent" data-role="content" class="content" >
         <form id="editForm">
             <div id="descDiv" data-role="fieldcontain">
                 <label id="descEditLabel" for="editDescription">Description:</label>
@@ -325,22 +336,6 @@
         </form>
     </div>
 </div>
-
-<script type="text/javascript" src="cordova-2.1.0.js"></script>
-<script type="text/javascript" src="js/lib/jquery.js"></script>
-<script type="text/javascript" src="js/lib/jquery-ui-1.9.0.custom.min.js"></script>
-<script type="text/javascript" src="js/lib/jquery.mobile.js"></script>
-<script type="text/javascript" src="js/lib/iscroll-lite.js"></script>
-<script type="text/javascript" src="js/lib/jquery.mobile.iscrollview.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/lib/core.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/lib/sha1.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/lib/enc-base64.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/lib/moment.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/util.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/global-variables.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/model.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/view.js"></script>
-<script type="text/javascript" charset="utf-8" src="js/controller.js"></script>
 
 </body>
 </html>

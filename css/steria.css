@@ -210,13 +210,13 @@
     border: 1px solid #aaa /*{b-body-border}*/;
     color: #444 /*{b-body-color}*/;
     text-shadow: 0 /*{b-body-shadow-x}*/ 0px /*{b-body-shadow-y}*/ 0px /*{b-body-shadow-radius}*/ #ddd /*{b-body-shadow-color}*/;
-    background: #f0f0fe /*{b-body-background-color}*/;
-    background-image: -webkit-gradient(linear, left top, left bottom, from( #f0f0fe /*{b-body-background-start}*/), to( #f0f0fe /*{b-body-background-end}*/)); /* Saf4+, Chrome */
-    background-image: -webkit-linear-gradient( #f0f0fe /*{b-body-background-start}*/, #f0f0fe /*{b-body-background-end}*/); /* Chrome 10+, Saf5.1+ */
-    background-image:    -moz-linear-gradient( #f0f0fe /*{b-body-background-start}*/, #f0f0fe /*{b-body-background-end}*/); /* FF3.6 */
-    background-image:     -ms-linear-gradient( #f0f0fe /*{b-body-background-start}*/, #f0f0fe /*{b-body-background-end}*/); /* IE10 */
-    background-image:      -o-linear-gradient( #f0f0fe /*{b-body-background-start}*/, #f0f0fe /*{b-body-background-end}*/); /* Opera 11.10+ */
-    background-image:         linear-gradient( #f0f0fe /*{b-body-background-start}*/, #f0f0fe /*{b-body-background-end}*/);
+    background: #f0f0f0 /*{b-body-background-color}*/;
+    background-image: -webkit-gradient(linear, left top, left bottom, from( #f0f0f0 /*{b-body-background-start}*/), to( #f0f0f0 /*{b-body-background-end}*/)); /* Saf4+, Chrome */
+    background-image: -webkit-linear-gradient( #f0f0f0 /*{b-body-background-start}*/, #f0f0f0 /*{b-body-background-end}*/); /* Chrome 10+, Saf5.1+ */
+    background-image:    -moz-linear-gradient( #f0f0f0 /*{b-body-background-start}*/, #f0f0f0 /*{b-body-background-end}*/); /* FF3.6 */
+    background-image:     -ms-linear-gradient( #f0f0f0 /*{b-body-background-start}*/, #f0f0f0 /*{b-body-background-end}*/); /* IE10 */
+    background-image:      -o-linear-gradient( #f0f0f0 /*{b-body-background-start}*/, #f0f0f0 /*{b-body-background-end}*/); /* Opera 11.10+ */
+    background-image:         linear-gradient( #f0f0f0 /*{b-body-background-start}*/, #f0f0f0 /*{b-body-background-end}*/);
 }
 .ui-overlay-b {
     background-image: none;

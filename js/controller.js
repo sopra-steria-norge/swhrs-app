@@ -1,7 +1,17 @@
-currentDate = moment();
-periodStartDate = moment();
-periodEndDate = moment();
+currentDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+periodStartDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+periodEndDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 
+$(document).on("pageinit", function () {
+    $.mobile.page.prototype.options.domCache = true;
+    $.mobile.buttonMarkup.hoverDelay = 0;
+    $.mobile.defaultDialogTransition = 'none';
+    $.mobile.defaultPageTransition = 'none';
+});
+
+$(document).on("deviceready", function () {
+    cordova.exec(null, null, "SplashScreen", "hide", []);
+});
 
 $(document).on("pagebeforechange", function (event, data) {
     if (typeof data.toPage === 'object' && data.toPage.attr('data-needs-auth') === 'true') {
@@ -35,6 +45,20 @@ function checkAuthentication(loginToken, onError) {
 }
 
 $(document).on('ready', function () {
+
+    $(".ui-btn").hover(function () {
+        $(this).removeClass("ui-btn-hover-a");
+        $(this).removeClass("ui-btn-hover-b");
+        $(this).removeClass("ui-btn-hover-c");
+        $(this).removeClass("ui-btn-hover-d");
+        $(this).removeClass("ui-btn-hover-e");
+    });
+//    $(".ui-btn-hover-a").removeClass("ui-btn-hover-a").addClass("ui-btn-up-a");
+//    $(".ui-btn-hover-b").removeClass("ui-btn-hover-b").addClass("ui-btn-up-b");
+//    $(".ui-btn-hover-c").removeClass("ui-btn-hover-c").addClass("ui-btn-up-c");
+//    $(".ui-btn-hover-d").removeClass("ui-btn-hover-d").addClass("ui-btn-up-d");
+//    $(".ui-btn-hover-e").removeClass("ui-btn-hover-e").addClass("ui-btn-up-e");
+
     var dayPageDomElement = $("#dayPage");
     var weekPageDomElement = $("#weekPage");
     var syncDataOnWeekPage = syncData(weekPageDomElement);
@@ -101,7 +125,6 @@ $(document).on('ready', function () {
         }
 
         dayPageDomElement.on('pagebeforeshow', function (event) {
-            console.log("Try to view page: " + currentDate.date);
             removeValidationHighlighting();
             try {
                 fillDayView();
@@ -147,13 +170,13 @@ $(document).on('ready', function () {
             var selectedFav = favMap[favForm]; //The Favourite object selected in the select box
 
             var lunchTaskNumber;
-            if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.format("YYYY-MM-DD")])) {
+            if (lunchForm === "1" && selectedFav.projectNumber !== "LUNSJ" && $.isEmptyObject(weekMap[currentDate.format(DATE_FORMAT)])) {
                 postHourRegistration({
                     'projectNumber':'LUNSJ',
                     'activityCode':'LU',
                     'description':'Lunsj',
                     'hours':0.5,
-                    'date':currentDate.format("YYYY-MM-DD")
+                    'date':currentDate.format(DATE_FORMAT)
                 }, function (data) {
                     dayPageDomElement.one("modelChanged", function () {
                         pulsateTimeEntry(data.taskNumber);
@@ -166,7 +189,7 @@ $(document).on('ready', function () {
                 'activityCode':selectedFav.activityCode,
                 'description':selectedFav.description,
                 'hours':hourForm,
-                'date':currentDate.format("YYYY-MM-DD")
+                'date':currentDate.format(DATE_FORMAT)
             }, function (data) {
                 editTaskNumber = data.taskNumber;
                 syncDataOnDayPage();
@@ -185,7 +208,7 @@ $(document).on('ready', function () {
          * Editing of registrations in dayList
          * Listens to click of a list element in dayList
          */
-        $('#editReg').on('click', function () {
+        $('#editReg').on("click", function () {
             var err = false;
 
             // Reset highlighted form elements
@@ -202,9 +225,9 @@ $(document).on('ready', function () {
 
             var edit = {
                 'taskNumber':editTaskNumber,
-                'projectNumber':weekMap[currentDate.format("YYYY-MM-DD")][editTaskNumber].projectNumber,
-                'activityCode':weekMap[currentDate.format("YYYY-MM-DD")][editTaskNumber].activityCode,
-                'date':currentDate.format("YYYY-MM-DD"),
+                'projectNumber':weekMap[currentDate.format(DATE_FORMAT)][editTaskNumber].projectNumber,
+                'activityCode':weekMap[currentDate.format(DATE_FORMAT)][editTaskNumber].activityCode,
+                'date':currentDate.format(DATE_FORMAT),
                 'workType':editWorkType,
                 'description':editDescription,
                 'hours':editHours
@@ -212,7 +235,7 @@ $(document).on('ready', function () {
 
             authenticatedAjax("POST", "hours/updateRegistration", edit, function () {
                 syncDataOnDayPage();
-                dayPageDomElement.one("pageshow", function () {
+                dayPageDomElement.one("modelChanged", function () {
                     $.mobile.silentScroll($("#entry" + editTaskNumber).offset().top);
                     pulsateTimeEntry(editTaskNumber);
                 });
@@ -233,12 +256,12 @@ $(document).on('ready', function () {
     }
 
     function addWeekPageEventHandlers() {
-        $('#prevWeekBtn').on("click", function () {
+        weekPageDomElement.find('#prevWeekBtn').on("click", function () {
             currentDate = periodStartDate.subtract('days', 1);
             syncDataOnWeekPage();
         });
 
-        $('#nextWeekBtn').on("click", function () {
+        weekPageDomElement.find('#nextWeekBtn').on("click", function () {
             currentDate = periodEndDate.add('days', 1);
             syncDataOnWeekPage();
         });
@@ -248,21 +271,21 @@ $(document).on('ready', function () {
          * Listens to clicks on list elements in weekPage (Monday, Tuesday etc.)
          * If a day is clicked it navigates to that day in dayView
          */
-        $('#weekList').on('click', 'li', function () {
-            var date = $(this).attr("id").substring(4);
-            currentDate = moment(date, "YYYY-MM-DD");
+        weekPageDomElement.find('#weekList').on("click", "li", function () {
+            var date = $(this).attr("id").substring("day:".length);
+            currentDate = moment(date, DATE_FORMAT);
             $.mobile.changePage("#dayPage");
             dayPageDomElement.trigger("modelChanged");
         });
 
         $("#submitPeriod").on("click", function () {
-            authenticatedAjax("POST", "hours/submitPeriod", {date:periodStartDate.toString()}, function () {
+            authenticatedAjax("POST", "hours/submitPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
                 syncDataOnWeekPage();
             });
         });
 
         $("#reopenPeriod").on("click", function () {
-            authenticatedAjax("POST", "hours/reopenPeriod", {date:periodStartDate.toString()}, function () {
+            authenticatedAjax("POST", "hours/reopenPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
                 syncDataOnWeekPage();
             });
         });
@@ -273,7 +296,7 @@ $(document).on('ready', function () {
          * Listens to a click of "Search Projects" in the Fav page
          * Gets search data from the server and displays results in a a list.
          */
-        $('#favBtn').on('click', function () {
+        $('#favBtn').on("click", function () {
             var inputSearch = $("#favSearch").val();
             var searchData = {
                 search:inputSearch
@@ -330,9 +353,8 @@ $(document).on('ready', function () {
     addSettingPageEventHandlers();
 
     $(document).on("modelChanged", function () {
-        if (currentDate.format("YYYY-MM-DD") > periodEndDate.toString() || currentDate.format("YYYY-MM-DD") < periodStartDate.toString() || periodEndDate.toString() < periodStartDate.toString()) {
-            console.log("Inconsistent periods");
-//            throw new Error("Inconsistent periods");
+        if (currentDate.diff(periodEndDate) > 0 || currentDate.diff(periodStartDate) < 0 || periodEndDate.diff(periodStartDate) < 0) {
+            throw new Error("Inconsistent periods");
         }
     });
 
@@ -422,7 +444,7 @@ function syncData(observingDomElement) {
             observingDomElement.trigger("modelChanged");
         };
 
-        authenticatedAjax("GET", "hours/week", {date:currentDate.format("YYYY-MM-DD")}, onSuccess);
+        authenticatedAjax("GET", "hours/week", {date:currentDate.format(DATE_FORMAT)}, onSuccess);
     }
 }
 

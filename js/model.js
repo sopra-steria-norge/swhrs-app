@@ -16,7 +16,7 @@ var MyDate = (function () {
     };
 
     MyDate.prototype.toString = function () {
-        return moment(this.date).format("YYYY-MM-DD");
+        return moment(this.date).format(DATE_FORMAT);
     };
 
     MyDate.prototype.toDateString = function () {
@@ -37,8 +37,8 @@ function updateFavouriteModel(projects) {
 function updateWeekModel(data) {
     weekMap = $.extend(data.days, {});
     var datesInWeek = Object.keys(weekMap).sort();
-    periodStartDate = moment(datesInWeek[0], "YYYY-MM-DD");
-    periodEndDate = moment(datesInWeek[datesInWeek.length - 1], "YYYY-MM-DD");
+    periodStartDate = moment(datesInWeek[0], DATE_FORMAT);
+    periodEndDate = moment(datesInWeek[datesInWeek.length - 1], DATE_FORMAT);
 
     weekStatusMap = {submitted:false, approved:false, rejected:false, periodDescription:data.periodDescription, totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 
@@ -57,7 +57,7 @@ function updateWeekModel(data) {
 }
 
 function deleteRegistration(taskNr) {
-    delete weekMap[currentDate.format("YYYY-MM-DD")][taskNr];
+    delete weekMap[currentDate.format(DATE_FORMAT)][taskNr];
     weekStatusMap = {submitted:false, approved:false, rejected:false, periodDescription:weekStatusMap.periodDescription, totalHours:0, hoursPerDay:{}, rejectedPerDay:{}};
 
     $.each(Object.keys(weekMap), function (i, date) {
