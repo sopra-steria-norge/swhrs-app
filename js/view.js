@@ -32,13 +32,15 @@ function fillSearchListInFavPage() {
 }
 
 function fillSelectMenuInDayView() {
+    var previousValue = $("#fav").val();
+
     var projects = "";
 
     $.each(favMap, function (key, project) {
         projects += '<option class="projectOption" value="' + key + '">' + project.description + '</option>';
     });
 
-    $("#fav").html(projects).selectmenu('refresh');
+    $("#fav").html(projects).val(previousValue).selectmenu('refresh', true);
 }
 
 function fillDayView() {
@@ -124,7 +126,7 @@ function fillWeekView() {
             dataIcon = "edit";
         }
 
-        listContent += "<li id='day:" + myDate.format(DATE_FORMAT) + "' data-transition='fade' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'>";
+        listContent += "<li id='day:" + myDate.format(DATE_FORMAT) + "' data-iconpos='left' data-theme='b' data-icon='" + dataIcon + "'>";
         listContent += '    <a href="#">' + myDate.format("DD.MM.YY") + '<p>' + WEEK_DAYS[myDate.day()] + '</p></a><span class="ui-li-count ' + (weekStatusMap.rejectedPerDay[date] ? 'rejectedEntry' : '') + '">' + weekStatusMap.hoursPerDay[date] + ' hours' + '</span>';
         listContent += "</li>";
     }

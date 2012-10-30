@@ -2,11 +2,14 @@ currentDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 periodStartDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 periodEndDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 
+
+
 $(document).on("pageinit", function () {
     $.mobile.page.prototype.options.domCache = true;
     $.mobile.buttonMarkup.hoverDelay = 0;
-    $.mobile.defaultDialogTransition = 'none';
-    $.mobile.defaultPageTransition = 'none';
+    $.mobile.changePage.defaults.allowSamePageTransition = true;
+//    $.mobile.defaultDialogTransition = 'none';
+//    $.mobile.defaultPageTransition = 'slide';
 });
 
 $(document).on("deviceready", function () {
@@ -45,19 +48,6 @@ function checkAuthentication(loginToken, onError) {
 }
 
 $(document).on('ready', function () {
-
-    $(".ui-btn").hover(function () {
-        $(this).removeClass("ui-btn-hover-a");
-        $(this).removeClass("ui-btn-hover-b");
-        $(this).removeClass("ui-btn-hover-c");
-        $(this).removeClass("ui-btn-hover-d");
-        $(this).removeClass("ui-btn-hover-e");
-    });
-//    $(".ui-btn-hover-a").removeClass("ui-btn-hover-a").addClass("ui-btn-up-a");
-//    $(".ui-btn-hover-b").removeClass("ui-btn-hover-b").addClass("ui-btn-up-b");
-//    $(".ui-btn-hover-c").removeClass("ui-btn-hover-c").addClass("ui-btn-up-c");
-//    $(".ui-btn-hover-d").removeClass("ui-btn-hover-d").addClass("ui-btn-up-d");
-//    $(".ui-btn-hover-e").removeClass("ui-btn-hover-e").addClass("ui-btn-up-e");
 
     var dayPageDomElement = $("#dayPage");
     var weekPageDomElement = $("#weekPage");
