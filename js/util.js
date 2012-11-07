@@ -41,6 +41,17 @@ function platformSpecific(parameters) {
     }
 }
 
-jQuery.fn.outerHTML = function() {
-    return $('<div>').append( this.eq(0).clone() ).html();
+function hasConnection() {
+    if (!navigator.network) {
+        return true; // No checking
+    }
+    return navigator.network.connection.type === Connection.ETHERNET ||
+        navigator.network.connection.type === Connection.WIFI ||
+        navigator.network.connection.type === Connection.CELL_2G ||
+        navigator.network.connection.type === Connection.CELL_3G ||
+        navigator.network.connection.type === Connection.CELL_4G;
+}
+
+jQuery.fn.outerHTML = function () {
+    return $('<div>').append(this.eq(0).clone()).html();
 };

@@ -16,7 +16,7 @@
 
     <link rel="shortcut icon" href="about:blank"/>
 
-    <script type="text/javascript" src="cordova-2.1.0.js"></script>
+    <script type="text/javascript" src="cordova-2.2.0.js"></script>
     <script type="text/javascript" src="js/lib/energize-min.js"></script>
     <script type="text/javascript" src="js/lib/jquery.js"></script>
     <script type="text/javascript" src="js/lib/jquery-ui-1.9.0.custom.min.js"></script>
@@ -35,7 +35,7 @@
 
 </head>
 
-<body>
+<body class="not-selectable">
 
 <!-- ********************************************************************************** -->
 <!-- dayPage: Showing the dayView where you can log hours -->
@@ -243,8 +243,8 @@
 <!-- Connection lost page -->
 <!-- ********************************************************************************** -->
 <div data-role="page" id="connectionLostPage" data-theme="a">
-    <a id="connectionLostLink" href="">
-        <div data-role="content" class="content"  id="connectionLostContent">
+    <a class="errorPageLink" href="">
+        <div data-role="content" class="content errorPageContent">
 
             <p class="connectionLost">Connection lost</p>
 
@@ -255,18 +255,17 @@
 
 
 <!-- ********************************************************************************** -->
-<!-- Dialog box: Dialogbox to confirm if you want to confirm your hours for the period -->
+<!-- Generic error page lost page -->
 <!-- ********************************************************************************** -->
-<div data-role="dialog" id="dialogPopUp">
-    <div data-role="header" class="" >
-        <h1>Confirm</h1>
-    </div>
+<div data-role="page" id="errorPage" data-theme="a">
+    <a class="errorPageLink" href="">
+        <div data-role="content" class="content errorPageContent">
 
-    <div id="contentDia" data-role="content" class="content" >
-        <p></p>
-        <a href="#weekPage" type="button" data-theme="e" data-rel="back" id="submitPeriod">Submit</a>
-        <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
-    </div>
+            <p class="connectionLost">Server error</p>
+
+            <p class="tapToRetry">Tap to retry</p>
+        </div>
+    </a>
 </div>
 
 <div data-role="dialog" id="dialogPopUp2">
@@ -284,21 +283,6 @@
     </div>
 </div>
 
-
-<!-- ***************************************************************************************************** -->
-<!-- Dialog box: Dialogbox with feedback that the registration is already submitted and can not be deleted -->
-<!-- ***************************************************************************************************** -->
-<div data-role="dialog" id="dialogReopen" data-transition="pop">
-    <div id="hdrDia3" data-role="header" class="" >
-        <h1>Confirm</h1>
-    </div>
-    <div data-role="content" class="content" >
-        <p>Do you want to reopen period?</p>
-        <a href="#weekPage" type="button" data-theme="a" data-rel="back" id="reopenPeriod">Reopen</a>
-        <a href="#weekPage" type="button" data-theme="b" data-rel="back">Cancel</a>
-    </div>
-
-</div>
 
 <!-- ****************************************************************** -->
 <!-- Dialog box: This is the dialog box used for editing a registration -->

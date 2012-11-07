@@ -3,7 +3,6 @@ periodStartDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 periodEndDate = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
 
 
-
 $(document).on("pageinit", function () {
     $.mobile.page.prototype.options.domCache = true;
     $.mobile.buttonMarkup.hoverDelay = 0;
@@ -13,7 +12,7 @@ $(document).on("pageinit", function () {
 });
 
 $(document).on("deviceready", function () {
-    cordova.exec(null, null, "SplashScreen", "hide", []);
+    navigator.splashscreen.hide();
 });
 
 $(document).on("pagebeforechange", function (event, data) {
@@ -27,6 +26,17 @@ $(document).on("pagebeforechange", function (event, data) {
 });
 
 function checkAuthentication(loginToken, onError) {
+    if (!hasConnection()) {
+        navigator.notification.alert(
+            'Your device has no network connection',
+            function () {
+                $.mobile.changePage("#connectionLostPage", {changeHash:false});
+            },
+            'Connection error',
+            'OK'
+        );
+        return;
+    }
     $.mobile.showPageLoadingMsg();
     $.ajax({
         type:'HEAD',
@@ -34,6 +44,7 @@ function checkAuthentication(loginToken, onError) {
         headers:{
             "X-Authentication-Token":JSON.stringify(loginToken)
         },
+        cache:false,
         success:function () {
             localStorage.setItem(LOGIN_TOKEN, JSON.stringify(loginToken));
             if (returnToPage) {
@@ -268,16 +279,37 @@ $(document).on('ready', function () {
             dayPageDomElement.trigger("modelChanged");
         });
 
-        $("#submitPeriod").on("click", function () {
-            authenticatedAjax("POST", "hours/submitPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
-                syncDataOnWeekPage();
-            });
+        weekPageDomElement.on("click", "#submitPeriod", function () {
+            var message = "You have logged " + weekStatusMap.totalHours + " hours in the period " +
+                periodStartDate.format(DATE_FORMAT) + " to " + periodEndDate.format(DATE_FORMAT) + ".";
+            navigator.notification.confirm(
+                message,
+                function (buttonIndex) {
+                    if (buttonIndex === 2) {
+                        authenticatedAjax("POST", "hours/submitPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
+                            syncDataOnWeekPage();
+                        });
+                    }
+                },
+                'Submit period?',
+                'Cancel,Submit'
+            );
         });
 
-        $("#reopenPeriod").on("click", function () {
-            authenticatedAjax("POST", "hours/reopenPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
-                syncDataOnWeekPage();
-            });
+        weekPageDomElement.on("click", "#reopenPeriod", function () {
+            var message = "Do you want to reopen period " + periodStartDate.format(DATE_FORMAT) + " to " + periodEndDate.format(DATE_FORMAT) + "?";
+            navigator.notification.confirm(
+                message,
+                function (buttonIndex) {
+                    if (buttonIndex === 2) {
+                        authenticatedAjax("POST", "hours/reopenPeriod", {date:periodStartDate.format(DATE_FORMAT)}, function () {
+                            syncDataOnWeekPage();
+                        });
+                    }
+                },
+                'Reopen period?',
+                'Cancel,Reopen'
+            );
         });
     }
 
@@ -296,11 +328,22 @@ $(document).on('ready', function () {
         });
     }
 
-    function addConnectionLostEventHandler() {
-        $("#connectionLostLink").on("click", function () {
+    function addErrorPagesEventHandler() {
+        $(".errorPageLink").on("click", function () {
             returnToPage = location.hash;
-            checkAuthentication(getLoginToken(), function () {
-                // do nothing on error
+            checkAuthentication(getLoginToken(), function (jqXHR, textStatus, errorThrown) {
+                if (jqXHR.status === 403) {
+                    redirectToLogin();
+                } else if (jqXHR.status >= 500) {
+                    $.mobile.hidePageLoadingMsg();
+                    navigator.notification.alert(
+                        jqXHR.statusText,
+                        function () {
+                        },
+                        'Server error',
+                        'OK'
+                    );
+                }
             });
         });
     }
@@ -337,7 +380,7 @@ $(document).on('ready', function () {
     addModelViewBinding();
     addDayPageEventHandlers();
     addWeekPageEventHandlers();
-    addConnectionLostEventHandler();
+    addErrorPagesEventHandler();
     addLoginPageEventHandlers();
 //    addFavPageEventHandlers();
     addSettingPageEventHandlers();
@@ -381,6 +424,17 @@ function removeLoginToken() {
 }
 
 function authenticatedAjax(type, url, data, success) {
+    if (!hasConnection()) {
+        navigator.notification.alert(
+            'Your device has no network connection',
+            function () {
+                $.mobile.changePage("#connectionLostPage", {changeHash:false});
+            },
+            'Connection error',
+            'OK'
+        );
+        return;
+    }
     $.mobile.showPageLoadingMsg();
     $.ajax({
         type:type,
@@ -392,12 +446,23 @@ function authenticatedAjax(type, url, data, success) {
             "X-Authentication-Token":JSON.stringify(getLoginToken())
         },
         success:defaultFunction(success),
-        error:function (jqXHR, textStatus) {
+        error:function (jqXHR, textStatus, errorThrown) {
             if (jqXHR.status === 403) {
                 redirectToLogin();
+            } else if (jqXHR.status >= 500) {
+                $.mobile.hidePageLoadingMsg();
+                navigator.notification.alert(
+                    jqXHR.statusText,
+                    function () {
+                        $.mobile.changePage("#errorPage", {changeHash:false});
+                    },
+                    'Server error',
+                    'OK'
+                );
+
             } else {
-                var message = "There was an error with the AJAX request.\n";
-                switch (textStatus) {
+                var message = "There was an error connecting to the server.\n";
+                switch (jqXHR.statusText) {
                     case 'timeout':
                         message += "The request timed out.";
                         break;
@@ -407,13 +472,20 @@ function authenticatedAjax(type, url, data, success) {
                     case 'parsererror':
                         message += "XML/Json format is bad.";
                         break;
-                    default:
-                        message += "HTTP Error (" + jqXHR.status + " " + jqXHR.statusText + ").";
                 }
 
                 $.mobile.hidePageLoadingMsg();
-                alert(message);
-                $.mobile.changePage("#connectionLostPage", {changeHash:false});
+                if (navigator.notification) {
+                    navigator.notification.alert(
+                        message,
+                        function () {
+                            $.mobile.changePage("#connectionLostPage", {changeHash:false});
+                        }
+                    );
+                } else {
+                    alert(message);
+                    $.mobile.changePage("#connectionLostPage", {changeHash:false});
+                }
             }
         },
         complete:function () {
@@ -424,14 +496,13 @@ function authenticatedAjax(type, url, data, success) {
 
 
 function syncData(observingDomElement) {
-    if (!observingDomElement || observingDomElement.length === 0) {
-        throw new Error("Argument is not a DOM element: '" + observingDomElement + "'.");
-    }
     return function () {
         var onSuccess = function (data) {
             updateFavouriteModel(data.projects);
             updateWeekModel(data);
-            observingDomElement.trigger("modelChanged");
+            if (observingDomElement) {
+                observingDomElement.trigger("modelChanged");
+            }
         };
 
         authenticatedAjax("GET", "hours/week", {date:currentDate.format(DATE_FORMAT)}, onSuccess);

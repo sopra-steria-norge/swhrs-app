@@ -48,7 +48,7 @@ function fillDayView() {
     $("#dayList").empty();
     $("#hours").slider("option", "value", 7.5);
 
-    if (weekStatusMap.approved || weekStatusMap.rejected) {
+    if (weekStatusMap.approved || weekStatusMap.rejected || weekStatusMap.submitted) {
         $("#dayForm").hide();
     } else {
         $("#dayForm").show();
@@ -135,18 +135,18 @@ function fillWeekView() {
     $('#weekButtonDiv').empty();
     if (weekStatusMap.submitted && !weekStatusMap.approved && !weekStatusMap.rejected) {
         $('#weekDescription').append("<p class='submitted'>Period submitted.</p>");
-        $("#weekButtonDiv").html('<a href="#dialogReopen" data-role="button" id="reopenPopup" data-rel="dialog" data-transition="pop" data-theme="a">Reopen period</a>').trigger("create");
+        $("#weekButtonDiv").html('<a href="#" data-role="button" id="reopenPeriod" data-rel="dialog" data-transition="pop" data-theme="a">Reopen period</a>').trigger("create");
     } else if (weekStatusMap.rejected) {
         $('#weekDescription').append("<p class='rejected'>Period rejected. Use the desktop version to edit time period.</p>");
     } else if (weekStatusMap.approved) {
         $('#weekDescription').append("<p class='approved'>Period approved.</p>");
     } else {
-        $("#weekButtonDiv").html('<a href="#dialogPopUp" data-role="button" id="submitPopup" data-rel="dialog" data-transition="pop" data-theme="e">Submit period</a>').trigger("create");
+        $("#weekButtonDiv").html('<a href="#" data-role="button" id="submitPeriod" data-rel="dialog" data-transition="pop" data-theme="e">Submit period</a>').trigger("create");
+
     }
     $('#weekDescription').append("<p>You have logged " + weekStatusMap.totalHours + " hours this period.</p>");
 
     $("#weekList").html(listContent).listview("refresh", true);
 
     $('#weekPageTitle').text(weekStatusMap.periodDescription || "");
-    $('#contentDia').children('p').html("You have logged <strong>" + weekStatusMap.totalHours + "</strong> hours in the period <strong>" + weekStatusMap.periodDescription + "</strong> (" + periodStartDate.format(DATE_FORMAT) + " - " + periodEndDate.format(DATE_FORMAT) + ").");
 }
